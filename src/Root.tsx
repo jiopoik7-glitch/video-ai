@@ -1,12 +1,6 @@
 import React from "react";
 import { Composition } from "remotion";
-import {
-  LyricVideo,
-  VIDEO_DURATION_FRAMES,
-  VIDEO_FPS,
-  VIDEO_HEIGHT,
-  VIDEO_WIDTH,
-} from "./LyricVideo";
+import { LyricVideo } from "./LyricVideo";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -14,10 +8,10 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="LyricPlain"
         component={LyricVideo}
-        durationInFrames={VIDEO_DURATION_FRAMES}
-        fps={VIDEO_FPS}
-        width={VIDEO_WIDTH}
-        height={VIDEO_HEIGHT}
+        durationInFrames={1620}
+        fps={60}
+        width={1080}
+        height={1080}
       />
     </>
   );
