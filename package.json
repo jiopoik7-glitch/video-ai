@@ -1,13 +1,13 @@
 {
-  "name": "benih-tomat-dataran-rendah-video-ai",
+  "name": "rawat-stroberi-dataran-rendah-ios26",
   "version": "1.0.0",
   "private": true,
-  "description": "Video TikTok Affiliate iOS Liquid Glass - Benih Tomat Dataran Rendah (Seflorner)",
+  "description": "Video Edukasi & Affiliate Authentic iOS 26 Liquid Glass - Rawat Stroberi Dataran Rendah (Seflorner)",
   "scripts": {
     "generate:audio": "node scripts/generate-audio.mjs",
     "typecheck": "tsc --noEmit",
     "compositions": "remotion compositions src/index.ts",
-    "build": "remotion render src/index.ts BenihTomatDataranRendah out/benih-tomat-dataran-rendah.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
+    "build": "remotion render src/index.ts RawatStroberiIos26 out/rawat-stroberi-dataran-rendah.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
   },
   "dependencies": {
     "@remotion/cli": "4.0.242",

@@ -1,49 +1,52 @@
 import React, { useEffect } from "react";
 import { AbsoluteFill, Sequence, useCurrentFrame } from "remotion";
-import { ACTS, COPY, DURATION_IN_FRAMES } from "../data/videoData";
-import { loadAppleEditorialFonts } from "../theme";
+import { CONTENT, DURATION_IN_FRAMES, TIMING } from "../data/videoData";
+import { loadIosFonts } from "../theme";
 import { AudioEngine } from "./AudioEngine";
-import { IosMicroChrome, OrganicMeshCanvas } from "./LiquidGlassUI";
-import { Act1Hook } from "../scenes/Act1Hook";
-import { Act2Checklist } from "../scenes/Act2Checklist";
-import { Act3Widget } from "../scenes/Act3Widget";
-import { Act4Sheet } from "../scenes/Act4Sheet";
-import { Act5Cta } from "../scenes/Act5Cta";
+import { DeepBotanicalWallpaper, IosSystemChrome } from "./LiquidGlassUI";
+import { Babak1LockScreen } from "../scenes/Babak1LockScreen";
+import { Babak2InsetGuide } from "../scenes/Babak2InsetGuide";
+import { Babak3SegmentedCompare } from "../scenes/Babak3SegmentedCompare";
+import { Babak4ModalSheet } from "../scenes/Babak4ModalSheet";
 
 export const MasterVideo: React.FC = () => {
   const frame = useCurrentFrame();
 
   useEffect(() => {
-    loadAppleEditorialFonts();
+    loadIosFonts();
   }, []);
 
   const progressRatio = frame / Math.max(1, DURATION_IN_FRAMES - 1);
+  // Dynamic Island widens slightly into Live Activity after Lock Screen unlocks
+  const liveActive = frame >= TIMING.lockScreen.unlockStart;
 
   return (
     <AbsoluteFill>
-      <OrganicMeshCanvas />
+      <DeepBotanicalWallpaper />
 
-      <Sequence from={ACTS.act1.from} durationInFrames={ACTS.act1.duration}>
-        <Act1Hook />
+      {/* Babak 2 mounts underneath as Babak 1 Lock Screen unlocks -> ZERO blank frames */}
+      <Sequence from={TIMING.guide.from} durationInFrames={TIMING.guide.duration}>
+        <Babak2InsetGuide />
       </Sequence>
 
-      <Sequence from={ACTS.act2.from} durationInFrames={ACTS.act2.duration}>
-        <Act2Checklist />
+      <Sequence from={TIMING.lockScreen.from} durationInFrames={TIMING.lockScreen.duration}>
+        <Babak1LockScreen />
       </Sequence>
 
-      <Sequence from={ACTS.act3.from} durationInFrames={ACTS.act3.duration}>
-        <Act3Widget />
+      {/* Babak 3 stays mounted and recedes into iOS Modal Depth as Babak 4 Sheet slides up */}
+      <Sequence from={TIMING.compare.from} durationInFrames={TIMING.compare.duration}>
+        <Babak3SegmentedCompare />
       </Sequence>
 
-      <Sequence from={ACTS.act4.from} durationInFrames={ACTS.act4.duration}>
-        <Act4Sheet />
+      <Sequence from={TIMING.modalSheet.from} durationInFrames={TIMING.modalSheet.duration}>
+        <Babak4ModalSheet />
       </Sequence>
 
-      <Sequence from={ACTS.act5.from} durationInFrames={ACTS.act5.duration}>
-        <Act5Cta />
-      </Sequence>
-
-      <IosMicroChrome timeLabel={COPY.statusTime} progressRatio={progressRatio} />
+      <IosSystemChrome
+        timeLabel={CONTENT.statusTime}
+        progressRatio={progressRatio}
+        liveActive={liveActive}
+      />
 
       <AudioEngine />
     </AbsoluteFill>

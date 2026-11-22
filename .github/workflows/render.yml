@@ -25,22 +25,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate procedural audio WAVs
+      - name: Generate iOS Tactile Glass audio WAVs
         run: node scripts/generate-audio.mjs
 
-      - name: TypeScript typecheck
+      - name: TypeScript strict typecheck
         run: npx tsc --noEmit
 
       - name: Verify Remotion compositions
         run: npx remotion compositions src/index.ts
 
-      - name: Render master video MP4
-        run: npx remotion render src/index.ts BenihTomatDataranRendah out/benih-tomat-dataran-rendah.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
+      - name: Render master video MP4 (1080x1920 60fps 20s)
+        run: npx remotion render src/index.ts RawatStroberiIos26 out/rawat-stroberi-dataran-rendah.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
 
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
         with:
           name: hasil-video
-          path: out/benih-tomat-dataran-rendah.mp4
+          path: out/rawat-stroberi-dataran-rendah.mp4
           if-no-files-found: error
           compression-level: 0

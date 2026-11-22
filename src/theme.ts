@@ -4,57 +4,45 @@ export const W = 1080;
 export const H = 1920;
 export const FPS = 60;
 
-export const SAFE = {
-  top: 200,
-  bottom: 480,
-  left: 60,
-  right: 140,
+// Simetris iPhone asli (44px kiri-kanan) + Safe Zone vertikal TikTok (top >= 180, konten penting di atas y = 1480)
+export const LAYOUT = {
+  padX: 44,
+  topSafe: 184,
+  bottomSafe: 440, // 1920 - 440 = y 1480 batas aman di atas caption & keranjang kuning TikTok
 } as const;
 
-export const PALETTE = {
-  canvas: "#F5F6F2",
-  accent: "#15803D",
-  accentSoft: "rgba(21, 128, 61, 0.13)",
-  warm: "#C2410C",
-  warmSoft: "rgba(194, 65, 12, 0.12)",
-  ink: "#0F1714",
-  inkMuted: "#3D4D45",
-  white: "#FFFFFF",
+export const IOS_COLORS = {
+  wallpaperBase: "#07120C",
+  wallpaperMid: "#0E2318",
+  labelPrimary: "#FFFFFF",
+  labelSecondary: "rgba(255, 255, 255, 0.74)",
+  labelTertiary: "rgba(255, 255, 255, 0.52)",
+  separator: "rgba(255, 255, 255, 0.14)",
+  iosGreen: "#30D158",
+  iosGreenDeep: "#16A34A",
+  iosRed: "#FF453A",
+  iosBerry: "#F43F5E",
+  iosAmber: "#FF9F0A",
+  islandBlack: "#000000",
 } as const;
 
-export const FONTS = {
-  sans: '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
-  serif: '"Instrument Serif", Georgia, serif',
-  mono: '"JetBrains Mono", Menlo, Consolas, monospace',
-} as const;
+// Tipografi iOS Asli (SF Pro / Inter — TANPA Monospace di judul/subjudul!)
+export const IOS_FONT =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif';
 
-export const FONT_SIZE = {
-  xs: 34,
-  sm: 44,
-  md: 56,
-  lg: 72,
-  xl: 96,
-  xxl: 120,
-  hero: 160,
-} as const;
+export const EASE_IOS = Easing.bezier(0.22, 1, 0.36, 1);
+export const EASE_OUT_CUBIC = Easing.bezier(0.16, 1, 0.3, 1);
 
-export const RADIUS = {
-  notif: 24,
-  card: 36,
-  sheet: 40,
-  pill: 999,
-} as const;
-
-export const EASE_APPLE = Easing.bezier(0.16, 1, 0.3, 1);
-
-export const SPRING_SILKY = {
-  damping: 20,
-  stiffness: 145,
+export const SPRING_IOS = {
+  damping: 22,
+  stiffness: 170,
+  mass: 0.95,
 } as const;
 
 export const SPRING_TACTILE = {
-  damping: 14,
-  stiffness: 240,
+  damping: 16,
+  stiffness: 260,
+  mass: 0.75,
 } as const;
 
 export const CLAMP = {
@@ -62,68 +50,43 @@ export const CLAMP = {
   extrapolateRight: "clamp" as const,
 };
 
-/**
- * Deterministic seeded PRNG (mulberry32) for Remotion multi-tab parallel rendering.
- */
-export function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+const INTER_URL =
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
 
-const GOOGLE_FONTS_URL =
-  "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap";
+let fontTriggered = false;
 
-let fontLoaderTriggered = false;
-
-export function loadAppleEditorialFonts(): void {
-  if (typeof document === "undefined" || fontLoaderTriggered) {
+export function loadIosFonts(): void {
+  if (typeof document === "undefined" || fontTriggered) {
     return;
   }
-  fontLoaderTriggered = true;
-
-  const handle = delayRender("Loading Apple-Editorial Google Fonts", {
+  fontTriggered = true;
+  const handle = delayRender("Loading iOS Inter Font", {
     timeoutInMilliseconds: 8000,
   });
-
-  let finished = false;
-  const finishOnce = () => {
-    if (!finished) {
-      finished = true;
+  let settled = false;
+  const done = () => {
+    if (!settled) {
+      settled = true;
       continueRender(handle);
     }
   };
-
-  // Satu-satunya penggunaan setTimeout yang diizinkan: fallback batas tunggu 3200ms bila offline
-  const fallbackTimer = globalThis.setTimeout(finishOnce, 3200);
-
+  const timer = globalThis.setTimeout(done, 3200);
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = GOOGLE_FONTS_URL;
+  link.href = INTER_URL;
   link.onload = () => {
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready
-        .then(() => {
-          globalThis.clearTimeout(fallbackTimer);
-          finishOnce();
-        })
-        .catch(() => {
-          globalThis.clearTimeout(fallbackTimer);
-          finishOnce();
-        });
+        .then(() => { globalThis.clearTimeout(timer); done(); })
+        .catch(() => { globalThis.clearTimeout(timer); done(); });
     } else {
-      globalThis.clearTimeout(fallbackTimer);
-      finishOnce();
+      globalThis.clearTimeout(timer);
+      done();
     }
   };
   link.onerror = () => {
-    globalThis.clearTimeout(fallbackTimer);
-    finishOnce();
+    globalThis.clearTimeout(timer);
+    done();
   };
   document.head.appendChild(link);
 }
