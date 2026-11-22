@@ -1,33 +1,22 @@
 {
-  "name": "template-helloworld",
+  "name": "seflorner-bibit-stroberi-liquid-glass",
   "version": "1.0.0",
-  "description": "My Remotion video",
+  "private": true,
+  "description": "TikTok Affiliate 9:16 Remotion Video - iOS Liquid Glass x Notes & Widgets - Bibit Stroberi Dataran Rendah (Seflorner)",
   "scripts": {
-    "dev": "remotion studio",
-    "build": "remotion bundle",
-    "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "audio": "node scripts/generate-audio.mjs",
+    "typecheck": "tsc --noEmit",
+    "compositions": "remotion compositions",
+    "render": "remotion render src/index.ts BibitStroberiLiquidGlass out/bibit-stroberi-seflorner.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
   },
-  "repository": {},
-  "license": "UNLICENSED",
   "dependencies": {
-    "@remotion/cli": "^4.0.0",
-    "@remotion/zod-types": "^4.0.0",
-    "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "remotion": "^4.0.0",
-    "zod": "4.6.7"
+    "@remotion/cli": "4.0.242",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.242"
   },
   "devDependencies": {
-    "@remotion/eslint-config-flat": "^4.0.0",
-    "@types/react": "19.3.0",
-    "@types/web": "0.0.166",
-    "eslint": "10.12.0",
-    "prettier": "3.8.1",
-    "typescript": "5.9.3"
-  },
-  "engines": {
-    "node": "^20.19.0 || ^22.13.0 || >=24"
-  },
-  "private": true
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
 }
