@@ -1,23 +1,22 @@
 {
-  "name": "ios26-unlock-the-garden",
+  "name": "garden-ios-remotion",
   "version": "1.0.0",
   "private": true,
-  "description": "Ultra-Native iOS 26 Liquid Glass Experience Engine - Unlock The Garden (98s, 60 FPS)",
+  "type": "module",
   "scripts": {
-    "generate:audio": "node scripts/generate-audio.mjs",
-    "typecheck": "tsc --noEmit",
-    "compositions": "remotion compositions src/index.ts",
-    "render": "remotion render src/index.ts IOS26UnlockTheGarden out/ios26-unlock-the-garden.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts GardenIOS30s out/garden-ios-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.234",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "remotion": "4.0.234"
+    "remotion": "4.0.545",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
-    "typescript": "5.6.3"
+    "@remotion/cli": "4.0.545",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "typescript": "5.8.3"
   }
 }
