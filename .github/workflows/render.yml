@@ -1,36 +1,46 @@
-name: Render Garden iOS Video
+name: Render Video Remotion
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install
 
-      - name: Validate TypeScript
-        run: npm run typecheck
+      - name: Generate kinetic sound design (7 WAV files)
+        run: node scripts/generate-audio.mjs
 
-      - name: List compositions
+      - name: TypeScript strict typecheck
+        run: npx tsc --noEmit
+
+      - name: Verify Remotion compositions
         run: npx remotion compositions src/index.ts
 
-      - name: Render MP4
-        run: npm run render
+      - name: Render Master MP4 (1920x1080 60fps 30s)
+        run: npx remotion render src/index.ts PsikologiBerkebunKinetic out/psikologi-berkebun-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
 
-      - name: Upload rendered video
+      - name: Upload video artifact
         uses: actions/upload-artifact@v4
         with:
-          name: garden-ios-30s
-          path: out/garden-ios-30s.mp4
+          name: hasil-video
+          path: out/psikologi-berkebun-30s.mp4
           if-no-files-found: error
+          compression-level: 0

@@ -1,0 +1,1 @@
+# Opsional: taruh voiceover.mp3 di sini lalu ubah ENABLE_VOICEOVER_FILE = true di src/components/AudioEngine.tsx
