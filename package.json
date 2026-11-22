@@ -1,13 +1,13 @@
 {
-  "name": "psikologi-berkebun-kinetic-30s",
+  "name": "tenang-berkebun-ae-30s",
   "version": "1.0.0",
   "private": true,
-  "description": "30s Kinetic Morph Motion Graphic - Psikologi Berkebun & Zeigarnik Effect (Seflorner)",
+  "description": "30s After-Effects Camera Motion Graphic - Kenapa Berkebun Bikin Tenang (Seflorner)",
   "scripts": {
     "generate:audio": "node scripts/generate-audio.mjs",
     "typecheck": "tsc --noEmit",
     "compositions": "remotion compositions src/index.ts",
-    "build": "remotion render src/index.ts PsikologiBerkebunKinetic out/psikologi-berkebun-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
+    "build": "remotion render src/index.ts TenangBerkebunAE out/tenang-berkebun-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
   },
   "dependencies": {
     "@remotion/cli": "4.0.242",

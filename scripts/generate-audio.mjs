@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Kinetic Morph & Botanical Calm Audio Engine (Pure Node.js ESM DSP)
- * Zero external dependencies. Deterministic mulberry32 PRNG.
+ * Organic Cinematic Motion Audio Engine (Pure Node.js ESM DSP - Zero Dependencies)
  * Menghasilkan 7 file RIFF WAV valid (PCM 16-bit Stereo 44.1 kHz, peak -3 dBFS) ke public/audio/.
  */
 import fs from "node:fs";
@@ -11,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const VIDEO_SECONDS = 30;
 const BGM_HEADROOM = 2;
 const SR = 44100;
-const TARGET_PEAK = Math.pow(10, -3.0 / 20); // -3.0 dBFS
+const TARGET_PEAK = Math.pow(10, -3.0 / 20);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.resolve(__dirname, "..", "public", "audio");
@@ -61,7 +60,7 @@ class Biquad {
   }
 }
 
-function applyReverb(left, right, wet = 0.22, feedback = 0.56) {
+function applyReverb(left, right, wet = 0.25, feedback = 0.58) {
   const n = left.length;
   const run = (inp, combD, apD) => {
     const combs = combD.map((d) => ({ buf: new Float64Array(d), idx: 0, lp: 0 }));
@@ -92,8 +91,8 @@ function applyReverb(left, right, wet = 0.22, feedback = 0.56) {
     return out;
   };
   return [
-    run(left, [1493, 1637, 1789, 1951], [229, 547]),
-    run(right, [1511, 1663, 1811, 1979], [251, 569]),
+    run(left, [1523, 1667, 1831, 1997], [233, 557]),
+    run(right, [1549, 1693, 1861, 2029], [257, 577]),
   ];
 }
 
@@ -119,8 +118,7 @@ function finalize(left, right, peakTarget = TARGET_PEAK) {
   if (peak > 1e-9) {
     const g = peakTarget / peak;
     for (let i = 0; i < n; i++) {
-      left[i] *= g;
-      right[i] *= g;
+      left[i] *= g; right[i] *= g;
     }
   }
 }
@@ -157,124 +155,106 @@ function midiHz(m) {
   return 440 * Math.pow(2, (m - 69) / 12);
 }
 
-function addWarmChordTone(left, right, start, durSec, freq, amp, pan) {
+function addFeltPiano(left, right, start, durSec, freq, amp, pan, rng) {
   const len = Math.min(Math.floor(durSec * SR), left.length - start);
   if (len <= 0 || start < 0) return;
-  const atk = Math.floor(0.018 * SR);
+  const atk = Math.floor(0.016 * SR);
   const gL = Math.cos(((pan + 1) * Math.PI) / 4) * amp;
   const gR = Math.sin(((pan + 1) * Math.PI) / 4) * amp;
-  const lpf = new Biquad("lowpass", 1320, 0.72);
+  const lpf = new Biquad("lowpass", 1250, 0.72);
   const w1 = (2 * Math.PI * freq) / SR;
-  const w2 = (2 * Math.PI * freq * 2.0012) / SR;
+  const w2 = (2 * Math.PI * freq * 2.001) / SR;
   const w3 = (2 * Math.PI * freq * 3.002) / SR;
   for (let i = 0; i < len; i++) {
     const t = i / SR;
-    const eAtk = i < atk ? 1 - Math.exp((-5 * i) / atk) : 1;
+    const eAtk = i < atk ? 1 - Math.exp((-5.2 * i) / atk) : 1;
     const eDec = Math.exp((-1.35 / Math.max(0.4, durSec)) * t);
-    const tail = i > len - 360 ? (len - i) / 360 : 1;
+    const tail = i > len - 380 ? (len - i) / 380 : 1;
+    const hammer = (rng() * 2 - 1) * 0.028 * Math.exp(-t / 0.01);
     const raw =
-      Math.sin(w1 * i) * 0.72 +
-      Math.sin(w2 * i) * 0.21 * Math.exp(-2.8 * t) +
-      Math.sin(w3 * i) * 0.07 * Math.exp(-5.0 * t);
+      Math.sin(w1 * i) * 0.74 +
+      Math.sin(w2 * i) * 0.19 * Math.exp(-2.8 * t) +
+      Math.sin(w3 * i) * 0.07 * Math.exp(-5.0 * t) +
+      hammer;
     const s = lpf.process(raw) * eAtk * eDec * tail;
     left[start + i] += s * gL;
     right[start + i] += s * gR;
   }
 }
 
-function addPluck(left, right, start, freq, amp, pan) {
-  const len = Math.min(Math.floor(0.32 * SR), left.length - start);
+function addKalimba(left, right, start, freq, amp, pan) {
+  const len = Math.min(Math.floor(0.42 * SR), left.length - start);
   if (len <= 0 || start < 0) return;
-  const atk = Math.floor(0.003 * SR);
+  const atk = Math.floor(0.004 * SR);
   const gL = Math.cos(((pan + 1) * Math.PI) / 4) * amp;
   const gR = Math.sin(((pan + 1) * Math.PI) / 4) * amp;
-  const lpf = new Biquad("lowpass", 2200, 0.85);
   const w1 = (2 * Math.PI * freq) / SR;
-  const w2 = (2 * Math.PI * freq * 2.0) / SR;
+  const w3 = (2 * Math.PI * freq * 2.98) / SR;
   for (let i = 0; i < len; i++) {
     const t = i / SR;
     const eAtk = i < atk ? i / atk : 1;
-    const env = Math.exp(-11.5 * t);
-    const s = lpf.process(Math.sin(w1 * i) * 0.82 + Math.sin(w2 * i) * 0.18 * Math.exp(-18 * t)) * eAtk * env;
+    const env = Math.exp(-8.5 * t);
+    const s = (Math.sin(w1 * i) * 0.86 + Math.sin(w3 * i) * 0.14 * Math.exp(-24 * t)) * eAtk * env;
     left[start + i] += s * gL;
     right[start + i] += s * gR;
   }
 }
 
-function addPulseKick(left, right, start, amp) {
+function addWarmPulse(left, right, start, amp) {
   const len = Math.min(Math.floor(0.14 * SR), left.length - start);
   if (len <= 0 || start < 0) return;
   let ph = 0;
   for (let i = 0; i < len; i++) {
     const t = i / SR;
-    const freq = 46 + 78 * Math.exp(-t / 0.018);
+    const freq = 48 + 72 * Math.exp(-t / 0.018);
     ph += (2 * Math.PI * freq) / SR;
-    const env = Math.exp(-t / 0.042);
-    const s = Math.sin(ph) * env * amp;
+    const s = Math.sin(ph) * Math.exp(-t / 0.04) * amp;
     left[start + i] += s;
     right[start + i] += s;
   }
 }
 
-function addShakerTick(left, right, start, amp, pan, rng) {
-  const len = Math.min(Math.floor(0.045 * SR), left.length - start);
-  if (len <= 0 || start < 0) return;
-  const hp = new Biquad("highpass", 6500, 0.8);
-  const gL = Math.cos(((pan + 1) * Math.PI) / 4) * amp;
-  const gR = Math.sin(((pan + 1) * Math.PI) / 4) * amp;
-  for (let i = 0; i < len; i++) {
-    const t = i / SR;
-    const env = Math.exp(-t / 0.011);
-    const s = hp.process(rng() * 2 - 1) * env;
-    left[start + i] += s * gL;
-    right[start + i] += s * gR;
-  }
-}
-
-// 1. bgm-kinetic-calm.wav (32s @ 112 BPM — modern SaaS kinetic groove that softens into botanical calm)
+// 1. bgm-story.wav (32s @ 104 BPM — subtle tense pulse in 0..12s, opens into warm sunlit botanical calm in 12..30s)
 function genBgm() {
   const durSec = VIDEO_SECONDS + BGM_HEADROOM;
   const total = Math.round(durSec * SR);
   const left = new Float64Array(total);
   const right = new Float64Array(total);
-  const rng = mulberry32(20265001);
+  const rng = mulberry32(20267001);
 
-  const beat = 60 / 112; // ~0.5357s
-  const barBeats = 8;    // ~4.285s per chord
+  const beat = 60 / 104;
+  const barBeats = 8; // ~4.615s
   const chords = [
-    { notes: [53, 57, 60, 64, 67], arp: [69, 72, 76, 72, 69, 67, 64, 67] }, // Fmaj9
-    { notes: [50, 57, 60, 64, 65], arp: [69, 72, 74, 72, 69, 65, 64, 65] }, // Dm9
-    { notes: [46, 53, 57, 62, 65], arp: [69, 70, 74, 70, 69, 65, 62, 65] }, // Bbmaj7
-    { notes: [48, 55, 57, 62, 64], arp: [67, 72, 74, 72, 67, 64, 62, 64] }, // C6/9
+    { notes: [50, 57, 60, 64, 65], arp: [69, 72, 74, 72, 69, 65, 64, 65] }, // Dm9 (reflective hook)
+    { notes: [46, 53, 57, 60, 62], arp: [69, 70, 74, 70, 69, 65, 62, 65] }, // Bbmaj9 (tension)
+    { notes: [53, 57, 60, 64, 67], arp: [69, 72, 76, 72, 69, 67, 64, 67] }, // Fmaj9 (blooming relief!)
+    { notes: [48, 55, 57, 62, 64], arp: [67, 72, 74, 72, 67, 64, 62, 64] }, // C6/9 (warm resolve)
   ];
 
   const bars = Math.ceil(VIDEO_SECONDS / (barBeats * beat));
   for (let b = 0; b < bars; b++) {
     const ch = chords[b % chords.length];
     const barStart = b * barBeats * beat;
-    if (barStart >= VIDEO_SECONDS - 1.5) break;
+    if (barStart >= VIDEO_SECONDS - 1.4) break;
     const st = Math.floor(barStart * SR);
-    const dur = Math.min(barBeats * beat * 0.96, VIDEO_SECONDS - barStart);
+    const dur = Math.min(barBeats * beat * 0.98, VIDEO_SECONDS - barStart);
 
     ch.notes.forEach((m, idx) => {
       const pan = -0.35 + (idx / Math.max(1, ch.notes.length - 1)) * 0.70;
-      addWarmChordTone(left, right, st + Math.floor(idx * 0.025 * SR), dur, midiHz(m), 0.22, pan);
+      addFeltPiano(left, right, st + Math.floor(idx * 0.028 * SR), dur, midiHz(m), 0.24, pan, rng);
     });
 
-    // Kinetic subtle pulse & plucks active during Act 1-4 (0..25s), softening in Act 5
-    const energy = barStart < 23.5 ? 1.0 : 0.35;
+    const isRestless = barStart < 12.2;
+    const isEnding = barStart >= 24.5;
     for (let step = 0; step < 8; step++) {
-      const tStep = barStart + step * beat;
-      if (tStep >= VIDEO_SECONDS - 2.2) break;
-      const sIdx = Math.floor(tStep * SR);
-      if (step % 2 === 0 && energy > 0.5) {
-        addPulseKick(left, right, sIdx, 0.20 * energy);
+      const ts = barStart + step * beat;
+      if (ts >= VIDEO_SECONDS - 2.4) break;
+      const idx = Math.floor(ts * SR);
+      if (isRestless && step % 2 === 0) {
+        addWarmPulse(left, right, idx, 0.16);
       }
-      if (step % 2 === 1 && energy > 0.5) {
-        addShakerTick(left, right, sIdx, 0.065 * energy, step % 4 === 1 ? -0.3 : 0.3, rng);
-      }
-      if (step !== 3 && step !== 7) {
-        addPluck(left, right, sIdx, midiHz(ch.arp[step]), 0.14 * energy, step % 2 === 0 ? -0.32 : 0.32);
+      if (!isEnding && step !== 3 && step !== 7) {
+        addKalimba(left, right, idx, midiHz(ch.arp[step]), isRestless ? 0.10 : 0.14, step % 2 === 0 ? -0.32 : 0.32);
       }
     }
   }
@@ -285,75 +265,74 @@ function genBgm() {
     left[i] = hpL.process(left[i]);
     right[i] = hpR.process(right[i]);
   }
-  const [rl, rr] = applyReverb(left, right, 0.22, 0.54);
+  const [rl, rr] = applyReverb(left, right, 0.25, 0.56);
 
-  const fi = Math.floor(0.6 * SR);
-  const foStart = Math.floor((VIDEO_SECONDS - 2.4) * SR);
+  const fi = Math.floor(0.7 * SR);
+  const foStart = Math.floor((VIDEO_SECONDS - 2.5) * SR);
   const foEnd = Math.floor(VIDEO_SECONDS * SR);
   const foLen = foEnd - foStart;
   for (let i = 0; i < fi; i++) { const g = (i / fi) * (i / fi); rl[i] *= g; rr[i] *= g; }
   for (let i = foStart; i < total; i++) {
     if (i < foEnd) {
-      const u = (i - foStart) / foLen;
-      const g = Math.pow(1 - u, 2.4);
+      const g = Math.pow(1 - (i - foStart) / foLen, 2.4);
       rl[i] *= g; rr[i] *= g;
     } else {
       rl[i] = 0; rr[i] = 0;
     }
   }
   finalize(rl, rr);
-  return { name: "bgm-kinetic-calm.wav", targetSec: durSec, path: writeWav("bgm-kinetic-calm.wav", rl, rr) };
+  return { name: "bgm-story.wav", targetSec: durSec, path: writeWav("bgm-story.wav", rl, rr) };
 }
 
-// 2. sfx-whip.wav (0.28s: high-velocity kinetic whip-pan sweep)
+// 2. sfx-whip.wav (0.30s: AE camera whip-pan air sweep)
 function genWhip() {
-  const durSec = 0.28;
+  const durSec = 0.30;
   const n = Math.round(durSec * SR);
   const l = new Float64Array(n), r = new Float64Array(n);
-  const rng = mulberry32(20265002);
-  const bpL = new Biquad("bandpass", 600, 1.5);
-  const bpR = new Biquad("bandpass", 640, 1.5);
+  const rng = mulberry32(20267002);
+  const bpL = new Biquad("bandpass", 550, 1.4);
+  const bpR = new Biquad("bandpass", 590, 1.4);
   let brown = 0;
   for (let i = 0; i < n; i++) {
     const u = i / n;
     const w = rng() * 2 - 1;
     brown = (brown + 0.08 * w) / 1.08;
-    const fc = 360 + 2600 * Math.pow(Math.sin(u * Math.PI), 1.3);
-    bpL.set(fc, 1.5); bpR.set(fc * 1.05, 1.5);
-    const env = Math.sin(u * Math.PI) * Math.pow(1 - u, 0.3);
-    const pan = -0.5 + u * 1.0;
-    l[i] = bpL.process(brown * 2.2 + w * 0.35) * env * Math.cos(((pan + 1) * Math.PI) / 4);
-    r[i] = bpR.process(brown * 2.2 + w * 0.35) * env * Math.sin(((pan + 1) * Math.PI) / 4);
+    const fc = 320 + 2400 * Math.pow(Math.sin(u * Math.PI), 1.25);
+    bpL.set(fc, 1.4); bpR.set(fc * 1.05, 1.4);
+    const env = Math.sin(u * Math.PI) * Math.pow(1 - u, 0.32);
+    const pan = -0.45 + u * 0.9;
+    l[i] = bpL.process(brown * 2.2 + w * 0.3) * env * Math.cos(((pan + 1) * Math.PI) / 4);
+    r[i] = bpR.process(brown * 2.2 + w * 0.3) * env * Math.sin(((pan + 1) * Math.PI) / 4);
   }
   finalize(l, r);
   return { name: "sfx-whip.wav", targetSec: durSec, path: writeWav("sfx-whip.wav", l, r) };
 }
 
-// 3. sfx-blob-wipe.wav (0.50s: deep organic liquid swell for lime blob screen transition)
-function genBlobWipe() {
-  const durSec = 0.50;
+// 3. sfx-iris.wav (0.52s: luminous morning aperture bloom sweep)
+function genIris() {
+  const durSec = 0.52;
   const n = Math.round(durSec * SR);
   const l = new Float64Array(n), r = new Float64Array(n);
-  const rng = mulberry32(20265003);
-  const bp = new Biquad("bandpass", 420, 1.1);
-  let ph = 0;
+  const rng = mulberry32(20267003);
+  const bp = new Biquad("bandpass", 420, 1.15);
   let brown = 0;
   for (let i = 0; i < n; i++) {
     const u = i / n;
+    const t = i / SR;
     const w = rng() * 2 - 1;
     brown = (brown + 0.05 * w) / 1.05;
-    const fSub = 68 + 95 * Math.sin(u * Math.PI);
-    ph += (2 * Math.PI * fSub) / SR;
-    bp.set(240 + 1350 * Math.sin(u * Math.PI), 1.15);
+    bp.set(280 + 1800 * Math.sin(u * Math.PI), 1.15);
     const env = Math.sin(u * Math.PI);
-    const s = (Math.sin(ph) * 0.45 + bp.process(brown * 2.5 + w * 0.2) * 0.75) * env;
+    const chime = Math.sin(2 * Math.PI * midiHz(76) * t) * 0.14 * Math.exp(-5.5 * t);
+    const s = bp.process(brown * 2.3 + w * 0.2) * env * 0.8 + chime;
     l[i] = s; r[i] = s * 0.96;
   }
-  finalize(l, r);
-  return { name: "sfx-blob-wipe.wav", targetSec: durSec, path: writeWav("sfx-blob-wipe.wav", l, r) };
+  const [rl, rr] = applyReverb(l, r, 0.25, 0.48);
+  finalize(rl, rr);
+  return { name: "sfx-iris.wav", targetSec: durSec, path: writeWav("sfx-iris.wav", rl, rr) };
 }
 
-// 4. sfx-pop.wav (0.14s: snappy liquid pop for cards/pills/items)
+// 4. sfx-pop.wav (0.14s: soft organic droplet pop)
 function genPop() {
   const durSec = 0.14;
   const n = Math.round(durSec * SR);
@@ -363,58 +342,54 @@ function genPop() {
     const t = i / SR;
     const atk = i < 110 ? i / 110 : 1;
     const env = Math.exp(-t / 0.032);
-    const f = 420 + 520 * (1 - Math.exp(-t / 0.02));
+    const f = 430 + 480 * (1 - Math.exp(-t / 0.022));
     ph += (2 * Math.PI * f) / SR;
     const s = (Math.sin(ph) * 0.85 + Math.sin(ph * 2) * 0.15 * Math.exp(-t / 0.012)) * atk * env;
-    l[i] = s; r[i] = s * 0.97;
+    l[i] = s; r[i] = s * 0.96;
   }
   finalize(l, r);
   return { name: "sfx-pop.wav", targetSec: durSec, path: writeWav("sfx-pop.wav", l, r) };
 }
 
-// 5. sfx-click.wav (0.09s: crisp tactile submit click)
-function genClick() {
+// 5. sfx-tick.wav (0.09s: subtle restless clock/notification pulse)
+function genTick() {
   const durSec = 0.09;
   const n = Math.round(durSec * SR);
   const l = new Float64Array(n), r = new Float64Array(n);
-  const rng = mulberry32(20265005);
-  const lpf = new Biquad("lowpass", 1800, 0.85);
+  const rng = mulberry32(20267005);
+  const lpf = new Biquad("lowpass", 1500, 0.8);
   for (let i = 0; i < n; i++) {
     const t = i / SR;
-    const thud = Math.sin(2 * Math.PI * 160 * t) * Math.exp(-t / 0.012) * 0.72;
-    const snap = (Math.sin(2 * Math.PI * 1240 * t) * 0.4 + (rng() * 2 - 1) * 0.25) * Math.exp(-t / 0.004);
-    const s = lpf.process(thud + snap);
+    const s = lpf.process(Math.sin(2 * Math.PI * 185 * t) * Math.exp(-t / 0.011) * 0.75 + (rng() * 2 - 1) * Math.exp(-t / 0.003) * 0.25);
     l[i] = s; r[i] = s * 0.98;
   }
   finalize(l, r);
-  return { name: "sfx-click.wav", targetSec: durSec, path: writeWav("sfx-click.wav", l, r) };
+  return { name: "sfx-tick.wav", targetSec: durSec, path: writeWav("sfx-tick.wav", l, r) };
 }
 
-// 6. sfx-type.wav (0.06s: soft crisp keycap tick)
-function genType() {
-  const durSec = 0.06;
+// 6. sfx-complete.wav (0.85s: resonant harmonic chime when the broken circle locks to 100%!)
+function genComplete() {
+  const durSec = 0.85;
   const n = Math.round(durSec * SR);
   const l = new Float64Array(n), r = new Float64Array(n);
-  const rng = mulberry32(20265006);
-  const bp = new Biquad("bandpass", 2400, 1.8);
-  for (let i = 0; i < n; i++) {
-    const t = i / SR;
-    const s = (bp.process(rng() * 2 - 1) * 0.7 + Math.sin(2 * Math.PI * 920 * t) * 0.3) * Math.exp(-t / 0.006);
-    l[i] = s; r[i] = s * 0.96;
-  }
-  finalize(l, r);
-  return { name: "sfx-type.wav", targetSec: durSec, path: writeWav("sfx-type.wav", l, r) };
+  [69, 72, 76, 81].forEach((m, idx) => {
+    addKalimba(l, r, Math.floor(idx * 0.048 * SR), midiHz(m), 0.45, -0.35 + idx * 0.24);
+  });
+  const [rl, rr] = applyReverb(l, r, 0.30, 0.54);
+  finalize(rl, rr);
+  return { name: "sfx-complete.wav", targetSec: durSec, path: writeWav("sfx-complete.wav", rl, rr) };
 }
 
-// 7. sfx-resolve.wav (2.60s: warm botanical Fmaj9 closure chord fading to pure silence)
+// 7. sfx-resolve.wav (2.60s: warm sunlit Fmaj9 closure chord)
 function genResolve() {
   const durSec = 2.60;
   const n = Math.round(durSec * SR);
   const l = new Float64Array(n), r = new Float64Array(n);
+  const rng = mulberry32(20267007);
   [53, 60, 64, 67, 69, 76].forEach((m, idx) => {
-    addWarmChordTone(l, r, Math.floor(idx * 0.036 * SR), 2.1, midiHz(m), 0.28, -0.38 + idx * 0.15);
+    addFeltPiano(l, r, Math.floor(idx * 0.036 * SR), 2.1, midiHz(m), 0.28, -0.38 + idx * 0.15, rng);
   });
-  const [rl, rr] = applyReverb(l, r, 0.30, 0.58);
+  const [rl, rr] = applyReverb(l, r, 0.32, 0.58);
   const sil = Math.floor((durSec - 0.20) * SR);
   const fsStart = Math.floor((durSec - 0.85) * SR);
   const fLen = sil - fsStart;
@@ -458,7 +433,7 @@ function validate(entry) {
   return { name: entry.name, sec, peakDb, rmsDb };
 }
 
-const out = [genBgm(), genWhip(), genBlobWipe(), genPop(), genClick(), genType(), genResolve()];
+const out = [genBgm(), genWhip(), genIris(), genPop(), genTick(), genComplete(), genResolve()];
 console.log("----------------------------------------------------------------");
 console.log("File                        | Durasi | Peak dBFS | RMS dBFS");
 console.log("----------------------------------------------------------------");
@@ -468,7 +443,7 @@ try {
     console.log(`${v.name.padEnd(27)} | ${v.sec.toFixed(2)}s  | ${v.peakDb.toFixed(2).padStart(7)} dB | ${v.rmsDb.toFixed(2).padStart(7)} dB`);
   }
   console.log("----------------------------------------------------------------");
-  console.log("Semua 7 file WAV Kinetic Sound Design LULUS validasi.");
+  console.log("Semua 7 file WAV Cinematic Audio LULUS validasi.");
 } catch (err) {
   console.error("AUDIO VALIDATION FAILED:", err instanceof Error ? err.message : String(err));
   process.exit(1);

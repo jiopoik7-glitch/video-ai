@@ -1,6 +1,6 @@
 import React from "react";
 import { Audio, Sequence, interpolate, staticFile } from "remotion";
-import { DURATION_IN_FRAMES, SFX_CUES } from "../data/videoData";
+import { DURATION_IN_FRAMES, SFX_CUES } from "../data/storyData";
 import { CLAMP, FPS } from "../theme";
 
 export const ENABLE_PROCEDURAL_AUDIO = true;
@@ -9,10 +9,10 @@ export const ENABLE_VOICEOVER_FILE = false;
 const VOICEOVER_FILE = "media/voiceover.mp3";
 
 function bgmVol(frame: number, hasVo: boolean): number {
-  const fi = interpolate(frame, [0, Math.round(0.6 * FPS)], [0, 1], CLAMP);
+  const fi = interpolate(frame, [0, Math.round(0.7 * FPS)], [0, 1], CLAMP);
   const fo = interpolate(
     frame,
-    [DURATION_IN_FRAMES - Math.round(2.4 * FPS), DURATION_IN_FRAMES - 1],
+    [DURATION_IN_FRAMES - Math.round(2.5 * FPS), DURATION_IN_FRAMES - 1],
     [1, 0],
     CLAMP
   );
@@ -27,7 +27,7 @@ export const AudioEngine: React.FC = () => {
         <>
           <Sequence from={0} durationInFrames={DURATION_IN_FRAMES} layout="none">
             <Audio
-              src={staticFile("audio/bgm-kinetic-calm.wav")}
+              src={staticFile("audio/bgm-story.wav")}
               volume={(f) => bgmVol(f, ENABLE_VOICEOVER_FILE)}
             />
           </Sequence>
