@@ -1,14 +1,14 @@
 import React from "react";
 import { Composition } from "remotion";
-import { COMPOSITION_ID, DURATION_IN_FRAMES } from "./data/storyData";
+import { COMPOSITION_ID, DURATION_IN_FRAMES } from "./data/editData";
 import { FPS, H, W } from "./theme";
-import { MasterVideo } from "./components/MasterVideo";
+import { MasterEditedVideo } from "./components/MasterEditedVideo";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <Composition
       id={COMPOSITION_ID}
-      component={MasterVideo}
+      component={MasterEditedVideo}
       width={W}
       height={H}
       fps={FPS}

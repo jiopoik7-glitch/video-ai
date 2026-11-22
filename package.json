@@ -1,13 +1,13 @@
 {
-  "name": "tenang-berkebun-masterpiece-30s",
-  "version": "2.0.0",
+  "name": "seflorner-bivi-infarm-edit",
+  "version": "1.0.0",
   "private": true,
-  "description": "30s Artisanal Camera & Focal-Point Motion Graphic - Kenapa Berkebun Bikin Tenang (Seflorner)",
+  "description": "Remotion Commercial Finishing Edit for Raw Footage - BIVI Infarm 500ml (Seflorner)",
   "scripts": {
     "generate:audio": "node scripts/generate-audio.mjs",
     "typecheck": "tsc --noEmit",
     "compositions": "remotion compositions src/index.ts",
-    "build": "remotion render src/index.ts TenangBerkebunMaster out/tenang-berkebun-masterpiece-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
+    "build": "remotion render src/index.ts BiviInfarmEdit out/seflorner-bivi-infarm-edited.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
   },
   "dependencies": {
     "@remotion/cli": "4.0.242",

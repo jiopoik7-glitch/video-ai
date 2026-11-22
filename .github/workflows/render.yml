@@ -17,6 +17,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cek keberadaan video mentah (public/media/raw.mp4)
+        run: |
+          if [ ! -f public/media/raw.mp4 ]; then
+            echo "ERROR: File public/media/raw.mp4 belum ada! Salin dulu video mentahmu ke public/media/raw.mp4 lalu git push."
+            exit 1
+          fi
+          ls -lh public/media/raw.mp4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -25,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate organic sound design (7 WAV files)
+      - name: Generate tactile SFX (4 WAV files, tanpa BGM tambahan)
         run: node scripts/generate-audio.mjs
 
       - name: TypeScript strict typecheck
@@ -34,13 +42,13 @@ jobs:
       - name: Verify Remotion compositions
         run: npx remotion compositions src/index.ts
 
-      - name: Render Master MP4 (1920x1080 60fps 30s)
-        run: npx remotion render src/index.ts TenangBerkebunMaster out/tenang-berkebun-masterpiece-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
+      - name: Render Master Edited MP4 (1080x1920 60fps)
+        run: npx remotion render src/index.ts BiviInfarmEdit out/seflorner-bivi-infarm-edited.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
 
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
         with:
           name: hasil-video
-          path: out/tenang-berkebun-masterpiece-30s.mp4
+          path: out/seflorner-bivi-infarm-edited.mp4
           if-no-files-found: error
           compression-level: 0
