@@ -1,14 +1,14 @@
 import React from "react";
 import { Composition } from "remotion";
-import { VIDEO_SPEC } from "./data/seflornerData";
-import { VideoSeflornerStory } from "./VideoSeflornerStory";
+import { VIDEO_SPEC } from "./data/pocData";
+import { VideoPocAffiliate } from "./VideoPocAffiliate";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition
         id={VIDEO_SPEC.ID}
-        component={VideoSeflornerStory}
+        component={VideoPocAffiliate}
         width={VIDEO_SPEC.WIDTH}
         height={VIDEO_SPEC.HEIGHT}
         fps={VIDEO_SPEC.FPS}
