@@ -2,7 +2,6 @@ import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { DEVICE_METRICS } from "../config/deviceMetrics";
 import { LOCK_SCREEN_DATA } from "../data/contentData";
-import { COLORS } from "../design-system/colors";
 import { FONT_FAMILY, TYPOGRAPHY } from "../design-system/typography";
 import { runSpring } from "../motion/iosSpring";
 import { IOSNotification } from "../components/ios/IOSNotification";

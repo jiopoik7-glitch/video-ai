@@ -151,8 +151,7 @@ export const START_SMALL_DATA = {
 
 export const FINAL_MESSAGE_DATA = {
   kicker: "UNLOCK THE GARDEN",
-  headline: "SMALL SPACE.
-BIG IMPACT.",
+  headline: "SMALL SPACE.\nBIG IMPACT.",
   subheadline: "START WITH ONE PLANT.",
   quote:
     "Satu benih, satu pot, satu sudut rumah. Dari hal sekecil itu, tumbuh kebiasaan besar.",
