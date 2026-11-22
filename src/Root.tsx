@@ -1,19 +1,23 @@
 import React from "react";
 import { Composition } from "remotion";
-import { LyricVideo } from "./LyricVideo";
+import {
+  LyricVideo,
+  VIDEO_DURATION_FRAMES,
+  VIDEO_FPS,
+  VIDEO_HEIGHT,
+  VIDEO_WIDTH,
+} from "./LyricVideo";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      {/* 1080x1080 (rasio video 15 detik) · 60fps · 31 detik (1860 frame).
-          Ubah ke width={1080} height={1920} untuk 9:16, atau durationInFrames={2100} untuk 35 detik. */}
       <Composition
-        id="LyricEmotion"
+        id="LyricPlain"
         component={LyricVideo}
-        durationInFrames={1860}
-        fps={60}
-        width={1080}
-        height={1080}
+        durationInFrames={VIDEO_DURATION_FRAMES}
+        fps={VIDEO_FPS}
+        width={VIDEO_WIDTH}
+        height={VIDEO_HEIGHT}
       />
     </>
   );
