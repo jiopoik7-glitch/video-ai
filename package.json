@@ -1,19 +1,19 @@
 {
-  "name": "rawat-stroberi-dataran-rendah-ios26",
+  "name": "ios26-unlock-the-garden",
   "version": "1.0.0",
   "private": true,
-  "description": "Video Edukasi & Affiliate Authentic iOS 26 Liquid Glass - Rawat Stroberi Dataran Rendah (Seflorner)",
+  "description": "Ultra-Native iOS 26 Liquid Glass Experience Engine - Unlock The Garden (98s, 60 FPS)",
   "scripts": {
     "generate:audio": "node scripts/generate-audio.mjs",
     "typecheck": "tsc --noEmit",
     "compositions": "remotion compositions src/index.ts",
-    "build": "remotion render src/index.ts RawatStroberiIos26 out/rawat-stroberi-dataran-rendah.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
+    "render": "remotion render src/index.ts IOS26UnlockTheGarden out/ios26-unlock-the-garden.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.242",
+    "@remotion/cli": "4.0.234",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "remotion": "4.0.242"
+    "remotion": "4.0.234"
   },
   "devDependencies": {
     "@types/react": "18.3.12",
