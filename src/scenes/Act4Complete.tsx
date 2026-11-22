@@ -2,62 +2,68 @@ import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { HUMAN_FEELINGS } from "../data/storyData";
 import {
-  AE_SMOOTH_LAND,
-  AE_WHIP,
+  AE_LANDING,
+  AE_PORTAL,
+  AE_SILKY_PAN,
+  ART_GRID,
   CLAMP,
   COLORS,
   FONTS,
-  SPRING_CRISP,
-  SPRING_FLUID,
+  H,
+  SPRING_TACTILE,
+  SPRING_VELVET,
 } from "../theme";
 import {
   BotanicalRingCrest,
   CameraRig,
   MaskRevealLine,
-  SubtleAmbientLight,
-} from "../components/MotionPrimitives";
+  ParallaxAtmosphere,
+} from "../components/ArtPrimitives";
 
 export const Act4Complete: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const enterFade = interpolate(frame, [0, 22], [0, 1], CLAMP);
+  // Seamless Circular Focus Portal opening cleanly ON TOP of Act 3 (f0..42) -> ZERO blank frames!
+  const portal = interpolate(frame, [0, 42], [0, 1], { ...CLAMP, easing: AE_PORTAL });
+  const portalPct = interpolate(portal, [0, 1], [0, 145], CLAMP);
 
-  // Circle climbs from 75% (the incomplete circle from Act 1!) and locks to 100% at f70 (global f1196)
-  const circleProgress = interpolate(frame, [14, 72], [0.75, 1.0], {
+  // Circle climbs from 76% (the broken circle from Act 1!) to 100% at f76 (global f1186)
+  const circleProg = interpolate(frame, [16, 76], [0.76, 1.0], {
     ...CLAMP,
-    easing: AE_SMOOTH_LAND,
+    easing: AE_LANDING,
   });
-  const pctShown = Math.round(circleProgress * 100);
-  const lockRipple = interpolate(frame, [68, 118], [0, 1], { ...CLAMP, easing: AE_SMOOTH_LAND });
-  const lockBounce = spring({ frame: Math.max(0, frame - 70), fps, config: SPRING_CRISP });
+  const pctShown = Math.round(circleProg * 100);
+  const lockRipple = interpolate(frame, [74, 126], [0, 1], { ...CLAMP, easing: AE_LANDING });
+  const lockPop = spring({ frame: Math.max(0, frame - 76), fps, config: SPRING_TACTILE });
 
-  // Camera smoothly pans left to make room for the 3 relatable human feelings on the right!
-  const layoutShift = spring({ frame: Math.max(0, frame - 98), fps, config: SPRING_FLUID });
-  const ringOffsetX = interpolate(layoutShift, [0, 1], [0, -430], CLAMP);
-  const ringScale = interpolate(layoutShift, [0, 1], [1.12, 0.88], CLAMP);
+  // Smooth Rule-of-Thirds shift: Center (960) -> Left Third (520 -> offset -440px)
+  const shift = spring({ frame: Math.max(0, frame - 102), fps, config: SPRING_VELVET });
+  const ringOffsetX = interpolate(shift, [0, 1], [0, -440], CLAMP);
+  const ringScale = interpolate(shift, [0, 1], [1.10, 0.90], CLAMP);
 
-  // Continuous gentle AE dolly + smooth glide upward into Act 5
-  const exitUp = interpolate(frame, [344, 374], [0, 1], { ...CLAMP, easing: AE_WHIP });
-  const blurY = interpolate(exitUp, [0, 0.45, 0.75, 1], [0, 18, 12, 0], CLAMP);
+  // Seamless Vertical Camera Tilt-Up out paired 1:1 with Act 5 entrance (f350..394)
+  const tiltOut = interpolate(frame, [350, 394], [0, 1], { ...CLAMP, easing: AE_SILKY_PAN });
+  const slideY = tiltOut * H;
+  const blurY = interpolate(tiltOut, [0, 0.45, 0.55, 1], [0, 7, 7, 0], CLAMP);
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: COLORS.NIGHT,
         overflow: "hidden",
-        opacity: enterFade * (1 - exitUp),
+        clipPath: portal < 0.999 ? `circle(${portalPct.toFixed(1)}% at 50% 50%)` : "none",
+        transform: `translate3d(0, ${slideY.toFixed(1)}px, 0)`,
       }}
     >
-      <SubtleAmbientLight dark />
+      <ParallaxAtmosphere dark cameraOffsetY={tiltOut * 300} />
 
       <CameraRig
-        y={-exitUp * 640}
-        scale={interpolate(frame, [0, 340], [1.04, 1.0], CLAMP)}
+        scale={interpolate(frame, [0, 350], [1.03, 1.0], CLAMP)}
         blurY={blurY}
-        filterId="act4-blur"
+        filterId="act4-tilt-blur"
       >
-        {/* Center -> Left: The Circle That Finally Becomes 100% Complete */}
+        {/* Hero Focal Point: The Circle That Finally Closes 100% Utuh (High Contrast Always!) */}
         <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", zIndex: 20 }}>
           <div
             style={{
@@ -66,10 +72,9 @@ export const Act4Complete: React.FC = () => {
               flexDirection: "column",
               alignItems: "center",
               gap: 28,
-              transform: `translate3d(${ringOffsetX}px, 0, 0) scale(${ringScale})`,
+              transform: `translate3d(${ringOffsetX.toFixed(1)}px, 0, 0) scale(${ringScale.toFixed(3)})`,
             }}
           >
-            {/* Radiant Completion Ripple Wave */}
             {lockRipple > 0.01 && (
               <div
                 style={{
@@ -79,9 +84,9 @@ export const Act4Complete: React.FC = () => {
                   width: 380,
                   height: 380,
                   borderRadius: "50%",
-                  border: `3px solid ${COLORS.LEAF}`,
+                  border: `3px solid ${COLORS.MINT_BRIGHT}`,
                   transform: `translate(-50%, -50%) scale(${1 + lockRipple * 0.65})`,
-                  opacity: (1 - lockRipple) * 0.7,
+                  opacity: (1 - lockRipple) * 0.68,
                   pointerEvents: "none",
                 }}
               />
@@ -89,13 +94,13 @@ export const Act4Complete: React.FC = () => {
 
             <div
               style={{
-                transform: `scale(${frame >= 70 ? interpolate(lockBounce, [0, 0.5, 1], [0.96, 1.04, 1], CLAMP) : 1})`,
+                transform: `scale(${frame >= 76 ? interpolate(lockPop, [0, 0.5, 1], [0.96, 1.04, 1], CLAMP) : 1})`,
               }}
             >
               <BotanicalRingCrest
                 size={380}
-                progress={circleProgress}
-                color={COLORS.LEAF}
+                progress={circleProg}
+                color={COLORS.MINT_BRIGHT}
                 accentColor="#86EFAC"
               />
             </div>
@@ -104,7 +109,7 @@ export const Act4Complete: React.FC = () => {
               <div
                 style={{
                   fontFamily: FONTS.SANS,
-                  fontSize: 64,
+                  fontSize: 66,
                   fontWeight: 800,
                   letterSpacing: "-0.03em",
                   color: COLORS.WHITE,
@@ -117,8 +122,8 @@ export const Act4Complete: React.FC = () => {
                     fontFamily: FONTS.SERIF,
                     fontStyle: "italic",
                     fontWeight: 400,
-                    fontSize: 74,
-                    color: COLORS.LEAF,
+                    fontSize: 78,
+                    color: COLORS.MINT_BRIGHT,
                   }}
                 >
                   Utuh.
@@ -139,11 +144,11 @@ export const Act4Complete: React.FC = () => {
           </div>
         </AbsoluteFill>
 
-        {/* Right Column: 3 Warm, Relatable Feelings (ZERO clinical jargon!) */}
+        {/* Right Rule-of-Thirds Stack: 3 Relatable Human Feelings */}
         <div
           style={{
             position: "absolute",
-            right: 130,
+            right: ART_GRID.marginX,
             top: 0,
             bottom: 0,
             width: 820,
@@ -154,14 +159,14 @@ export const Act4Complete: React.FC = () => {
             zIndex: 25,
           }}
         >
-          <MaskRevealLine startFrame={102} duration={26}>
+          <MaskRevealLine startFrame={106} duration={26}>
             <div
               style={{
                 fontFamily: FONTS.SANS,
-                fontSize: 24,
+                fontSize: 23,
                 fontWeight: 700,
-                letterSpacing: "0.08em",
-                color: COLORS.LEAF,
+                letterSpacing: "0.09em",
+                color: COLORS.MINT_BRIGHT,
                 textTransform: "uppercase",
                 marginBottom: 4,
               }}
@@ -174,7 +179,7 @@ export const Act4Complete: React.FC = () => {
             const p = spring({
               frame: Math.max(0, frame - item.appearLocal),
               fps,
-              config: SPRING_FLUID,
+              config: SPRING_VELVET,
             });
             return (
               <div
@@ -185,7 +190,7 @@ export const Act4Complete: React.FC = () => {
                   padding: "30px 36px",
                   border: `1.5px solid ${COLORS.LINE_DARK}`,
                   opacity: p,
-                  transform: `translate3d(${interpolate(p, [0, 1], [90, 0], CLAMP)}px, 0, 0)`,
+                  transform: `translate3d(${interpolate(p, [0, 1], [84, 0], CLAMP)}px, 0, 0)`,
                 }}
               >
                 <div
@@ -207,7 +212,7 @@ export const Act4Complete: React.FC = () => {
                     fontWeight: 500,
                     color: COLORS.WHITE_MUTED,
                     marginTop: 8,
-                    lineHeight: 1.4,
+                    lineHeight: 1.42,
                   }}
                 >
                   {item.desc}

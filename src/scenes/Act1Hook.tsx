@@ -2,35 +2,34 @@ import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { UNFINISHED_CARDS } from "../data/storyData";
 import {
-  AE_SMOOTH_LAND,
-  AE_WHIP,
+  AE_LANDING,
+  AE_SILKY_PAN,
+  ART_GRID,
   CLAMP,
   COLORS,
   FONTS,
-  SPRING_CRISP,
+  SPRING_TACTILE,
+  W,
 } from "../theme";
 import {
   CameraRig,
   MaskRevealLine,
+  ParallaxAtmosphere,
   StuckRingBadge,
-  SubtleAmbientLight,
-} from "../components/MotionPrimitives";
+} from "../components/ArtPrimitives";
 
 export const Act1Hook: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // AE Virtual Camera: gentle dolly-in (1.0 -> 1.04) across scene, then dramatic whip-zoom dive into dark Act 2!
-  const dollyScale = interpolate(frame, [0, 320], [1.0, 1.05], { ...CLAMP, easing: AE_SMOOTH_LAND });
-  const whipExit = interpolate(frame, [328, 362], [0, 1], { ...CLAMP, easing: AE_WHIP });
+  // Silky dolly-in (1.0 -> 1.035), then continuous horizontal camera pan-wipe out to left (-W) synced 1:1 with Act 2!
+  const dolly = interpolate(frame, [0, 324], [1.0, 1.035], { ...CLAMP, easing: AE_LANDING });
+  const panOut = interpolate(frame, [324, 360], [0, 1], { ...CLAMP, easing: AE_SILKY_PAN });
+  const slideX = -panOut * W;
+  const panBlur = interpolate(panOut, [0, 0.45, 0.55, 1], [0, 7, 7, 0], CLAMP);
 
-  const camX = interpolate(whipExit, [0, 1], [0, -1400], CLAMP);
-  const camRotZ = interpolate(whipExit, [0, 0.5, 1], [0, -3.5, 0], CLAMP);
-  const camScale = dollyScale + whipExit * 0.22;
-  const blurX = interpolate(whipExit, [0, 0.45, 0.7, 1], [0, 26, 20, 0], CLAMP);
-
-  // Giant subtle broken circle (76% incomplete) rotating restlessly in the background behind everything
-  const ringRot = frame * 0.22;
+  // Hero Motif: Giant Broken Circle (76%) anchored softly at screen center
+  const ringRot = frame * 0.20;
   const r = 340;
   const circ = 2 * Math.PI * r;
 
@@ -39,26 +38,24 @@ export const Act1Hook: React.FC = () => {
       style={{
         backgroundColor: COLORS.CREAM,
         overflow: "hidden",
-        opacity: interpolate(whipExit, [0.72, 1], [1, 0], CLAMP),
+        transform: `translate3d(${slideX.toFixed(1)}px, 0, 0)`,
       }}
     >
-      <SubtleAmbientLight dark={false} />
+      <ParallaxAtmosphere dark={false} cameraOffsetX={panOut * 500} />
 
       <CameraRig
-        x={camX}
-        scale={camScale}
-        rotateZ={camRotZ}
-        blurX={blurX}
-        filterId="act1-blur"
+        scale={dolly}
+        blurX={panBlur}
+        filterId="act1-pan-blur"
       >
-        {/* Background Motif: Giant Incomplete Circle (76% — never closes!) strictly behind text */}
+        {/* Hero Motif Background Anchor (zIndex 1, soft opacity) */}
         <div
           style={{
             position: "absolute",
             left: "50%",
             top: "50%",
             transform: `translate(-50%, -50%) rotate(${ringRot}deg)`,
-            opacity: 0.14,
+            opacity: 0.13,
             pointerEvents: "none",
             zIndex: 1,
           }}
@@ -77,10 +74,10 @@ export const Act1Hook: React.FC = () => {
           </svg>
         </div>
 
-        {/* Main 2-Column Editorial Layout — 100% Inside Safe Margins, Crystal Clear Text */}
+        {/* Golden Ratio 2-Column Composition */}
         <AbsoluteFill
           style={{
-            padding: "0 130px",
+            padding: `0 ${ART_GRID.marginX}px`,
             display: "grid",
             gridTemplateColumns: "1.12fr 0.88fr",
             alignItems: "center",
@@ -88,15 +85,15 @@ export const Act1Hook: React.FC = () => {
             zIndex: 20,
           }}
         >
-          {/* Left: Relatable Hook Typography */}
+          {/* Left Focal Point: Relatable Hook */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <MaskRevealLine startFrame={4} duration={26}>
+            <MaskRevealLine startFrame={2} duration={26}>
               <span
                 style={{
                   fontFamily: FONTS.SANS,
-                  fontSize: 24,
+                  fontSize: 23,
                   fontWeight: 700,
-                  letterSpacing: "0.08em",
+                  letterSpacing: "0.09em",
                   color: COLORS.EMERALD,
                   textTransform: "uppercase",
                 }}
@@ -105,7 +102,7 @@ export const Act1Hook: React.FC = () => {
               </span>
             </MaskRevealLine>
 
-            <MaskRevealLine startFrame={16} duration={30}>
+            <MaskRevealLine startFrame={12} duration={30}>
               <div
                 style={{
                   fontFamily: FONTS.SANS,
@@ -120,7 +117,7 @@ export const Act1Hook: React.FC = () => {
               </div>
             </MaskRevealLine>
 
-            <MaskRevealLine startFrame={32} duration={30}>
+            <MaskRevealLine startFrame={28} duration={30}>
               <div
                 style={{
                   fontFamily: FONTS.SANS,
@@ -146,7 +143,7 @@ export const Act1Hook: React.FC = () => {
               </div>
             </MaskRevealLine>
 
-            <MaskRevealLine startFrame={158} duration={30}>
+            <MaskRevealLine startFrame={150} duration={30}>
               <div
                 style={{
                   fontFamily: FONTS.SANS,
@@ -154,45 +151,40 @@ export const Act1Hook: React.FC = () => {
                   fontWeight: 500,
                   color: COLORS.INK_MUTED,
                   marginTop: 22,
-                  lineHeight: 1.45,
+                  lineHeight: 1.46,
                   maxWidth: 740,
                 }}
               >
-                Bukan karena kamu kurang tidur — tapi terlalu banyak hal kecil yang terasa belum selesai.
+                Bukan karena kurang tidur — tapi terlalu banyak hal kecil yang terasa belum selesai.
               </div>
             </MaskRevealLine>
           </div>
 
-          {/* Right: 3 Everyday Unfinished Cards with Restless Stuck Rings */}
+          {/* Right Counter-Weight: 3 Unfinished Cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {UNFINISHED_CARDS.map((card, idx) => {
               const pop = spring({
                 frame: Math.max(0, frame - card.appearLocal),
                 fps,
-                config: SPRING_CRISP,
+                config: SPRING_TACTILE,
               });
-              const floatY = Math.sin(frame * 0.05 + idx * 1.4) * 5;
+              const floatY = Math.sin(frame * 0.048 + idx * 1.4) * 4.5;
 
               return (
                 <div
                   key={card.id}
                   style={{
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: COLORS.CREAM_CARD,
                     borderRadius: 28,
                     padding: "26px 32px",
                     border: `1.5px solid ${COLORS.LINE_LIGHT}`,
-                    boxShadow: "0 20px 50px rgba(13, 25, 18, 0.08)",
+                    boxShadow: "0 20px 50px rgba(12, 24, 17, 0.07)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     gap: 24,
                     opacity: pop,
-                    transform: `translate3d(${interpolate(pop, [0, 1], [140, 0], CLAMP)}px, ${floatY}px, 0) scale(${interpolate(
-                      pop,
-                      [0, 1],
-                      [0.92, 1],
-                      CLAMP
-                    )})`,
+                    transform: `translate3d(${interpolate(pop, [0, 1], [110, 0], CLAMP)}px, ${floatY}px, 0)`,
                   }}
                 >
                   <div>

@@ -1,64 +1,70 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import {
-  AE_SMOOTH_LAND,
-  AE_WHIP,
+  AE_LANDING,
+  AE_SILKY_PAN,
   CLAMP,
   COLORS,
   FONTS,
-  SPRING_FLUID,
+  H,
+  SPRING_VELVET,
 } from "../theme";
 import {
   BotanicalRingCrest,
   CameraRig,
   MaskRevealLine,
-  SubtleAmbientLight,
-} from "../components/MotionPrimitives";
+  ParallaxAtmosphere,
+} from "../components/ArtPrimitives";
 
 export const Act5Closing: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Silky upward camera rise from Act 4
-  const riseIn = interpolate(frame, [0, 34], [0, 1], { ...CLAMP, easing: AE_WHIP });
-  const enterY = interpolate(riseIn, [0, 1], [520, 0], CLAMP);
-  const enterBlur = interpolate(riseIn, [0, 0.35, 0.75, 1], [16, 10, 0, 0], CLAMP);
+  // Seamless Vertical Camera Tilt-Up paired 1:1 with Act 4 exit (f0..44) -> ZERO blank frames!
+  const tiltIn = interpolate(frame, [0, 44], [0, 1], { ...CLAMP, easing: AE_SILKY_PAN });
+  const slideY = -(1 - tiltIn) * H;
+  const blurY = interpolate(tiltIn, [0, 0.45, 0.55, 1], [0, 7, 7, 0], CLAMP);
 
-  // Phase A (0..162): Warm Relatable Emotional Closing Quote
-  const showQuote = frame < 170;
-  const quoteOut = interpolate(frame, [138, 168], [0, 1], { ...CLAMP, easing: AE_WHIP });
+  // Phase A (0..176): Warm Emotional Quote — ALREADY visible as screen tilts into morning daylight!
+  const showQuote = frame < 182;
+  const quoteOut = interpolate(frame, [146, 178], [0, 1], { ...CLAMP, easing: AE_SILKY_PAN });
 
-  // Phase B (156..324): Refined Original Botanical Crest + Seflorner. Finale
-  const showBrand = frame >= 154;
-  const crestPop = spring({ frame: Math.max(0, frame - 160), fps, config: SPRING_FLUID });
-  const crestDraw = interpolate(frame, [158, 214], [0, 1], { ...CLAMP, easing: AE_SMOOTH_LAND });
-  const gentleDolly = interpolate(frame, [0, 323], [0.985, 1.03], CLAMP);
+  // Phase B (162..340): Optical-Center Original Botanical Crest + Seflorner.
+  const showBrand = frame >= 160;
+  const brandIn = spring({ frame: Math.max(0, frame - 166), fps, config: SPRING_VELVET });
+  const crestDraw = interpolate(frame, [164, 224], [0, 1], { ...CLAMP, easing: AE_LANDING });
+  const calmDolly = interpolate(frame, [44, 339], [0.99, 1.03], CLAMP);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: COLORS.CREAM, overflow: "hidden" }}>
-      <SubtleAmbientLight dark={false} />
+    <AbsoluteFill
+      style={{
+        backgroundColor: COLORS.CREAM,
+        overflow: "hidden",
+        transform: `translate3d(0, ${slideY.toFixed(1)}px, 0)`,
+      }}
+    >
+      <ParallaxAtmosphere dark={false} cameraOffsetY={-(1 - tiltIn) * 320} />
 
       <CameraRig
-        y={enterY}
-        scale={gentleDolly}
-        blurY={enterBlur}
-        filterId="act5-blur"
+        scale={calmDolly}
+        blurY={blurY}
+        filterId="act5-tilt-blur"
       >
-        {/* PHASE A: RELATABLE EMOTIONAL CLOSING */}
+        {/* PHASE A: OPTICAL-CENTER EMOTIONAL QUOTE */}
         {showQuote && (
           <AbsoluteFill
             style={{
               justifyContent: "center",
               alignItems: "center",
-              padding: "0 170px",
+              padding: "0 170px 64px 170px",
               textAlign: "center",
               opacity: 1 - quoteOut,
-              transform: `translate3d(0, ${-quoteOut * 70}px, 0)`,
+              transform: `translate3d(0, ${-quoteOut * 56}px, 0)`,
               zIndex: 20,
             }}
           >
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-              <MaskRevealLine startFrame={18} duration={30}>
+              <MaskRevealLine startFrame={8} duration={28}>
                 <div
                   style={{
                     fontFamily: FONTS.SANS,
@@ -73,7 +79,7 @@ export const Act5Closing: React.FC = () => {
                 </div>
               </MaskRevealLine>
 
-              <MaskRevealLine startFrame={38} duration={30}>
+              <MaskRevealLine startFrame={24} duration={28}>
                 <div
                   style={{
                     fontFamily: FONTS.SANS,
@@ -103,12 +109,13 @@ export const Act5Closing: React.FC = () => {
           </AbsoluteFill>
         )}
 
-        {/* PHASE B: ORIGINAL BOTANICAL CREST & SEFLORNER SIGNATURE */}
+        {/* PHASE B: OPTICAL-CENTER BOTANICAL CREST & SEFLORNER SIGNATURE */}
         {showBrand && (
           <AbsoluteFill
             style={{
               justifyContent: "center",
               alignItems: "center",
+              paddingBottom: 56,
               zIndex: 20,
             }}
           >
@@ -118,12 +125,12 @@ export const Act5Closing: React.FC = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 gap: 28,
-                opacity: crestPop,
-                transform: `translate3d(0, ${interpolate(crestPop, [0, 1], [40, 0], CLAMP)}px, 0)`,
+                opacity: brandIn,
+                transform: `translate3d(0, ${interpolate(brandIn, [0, 1], [34, 0], CLAMP)}px, 0)`,
               }}
             >
               <BotanicalRingCrest
-                size={156}
+                size={164}
                 progress={crestDraw}
                 color={COLORS.EMERALD}
                 accentColor={COLORS.LEAF}
@@ -143,7 +150,7 @@ export const Act5Closing: React.FC = () => {
                   Seflorner<span style={{ color: COLORS.EMERALD }}>.</span>
                 </div>
 
-                <MaskRevealLine startFrame={192} duration={28}>
+                <MaskRevealLine startFrame={198} duration={28}>
                   <div
                     style={{
                       fontFamily: FONTS.SERIF,

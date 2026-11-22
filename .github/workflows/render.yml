@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate cinematic sound design (7 WAV files)
+      - name: Generate organic sound design (7 WAV files)
         run: node scripts/generate-audio.mjs
 
       - name: TypeScript strict typecheck
@@ -35,12 +35,12 @@ jobs:
         run: npx remotion compositions src/index.ts
 
       - name: Render Master MP4 (1920x1080 60fps 30s)
-        run: npx remotion render src/index.ts TenangBerkebunAE out/tenang-berkebun-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
+        run: npx remotion render src/index.ts TenangBerkebunMaster out/tenang-berkebun-masterpiece-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
 
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
         with:
           name: hasil-video
-          path: out/tenang-berkebun-30s.mp4
+          path: out/tenang-berkebun-masterpiece-30s.mp4
           if-no-files-found: error
           compression-level: 0

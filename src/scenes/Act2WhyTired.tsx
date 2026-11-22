@@ -2,67 +2,68 @@ import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { STUCK_BARS } from "../data/storyData";
 import {
-  AE_DRAMA_IN,
-  AE_SMOOTH_LAND,
-  AE_WHIP,
+  AE_LANDING,
+  AE_SILKY_PAN,
+  ART_GRID,
   CLAMP,
   COLORS,
   FONTS,
-  SPRING_FLUID,
+  SPRING_VELVET,
+  W,
 } from "../theme";
 import {
   CameraRig,
   MaskRevealLine,
-  SubtleAmbientLight,
-} from "../components/MotionPrimitives";
+  ParallaxAtmosphere,
+} from "../components/ArtPrimitives";
 
 export const Act2WhyTired: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // AE Whip-Pan entrance from right (matches Act 1 whip exit seamlessly!)
-  const whipIn = interpolate(frame, [0, 32], [0, 1], { ...CLAMP, easing: AE_WHIP });
-  const enterX = interpolate(whipIn, [0, 1], [1150, 0], CLAMP);
-  const enterRot = interpolate(whipIn, [0, 0.5, 1], [3.2, 1.4, 0], CLAMP);
-  const enterBlur = interpolate(whipIn, [0, 0.35, 0.75, 1], [24, 14, 0, 0], CLAMP);
+  // Seamless physical Pan-Wipe entrance paired 1:1 with Act 1 exit (f0..36) -> ZERO blank frames!
+  const panIn = interpolate(frame, [0, 36], [0, 1], { ...CLAMP, easing: AE_SILKY_PAN });
+  const slideX = (1 - panIn) * W;
+  const enterBlur = interpolate(panIn, [0, 0.45, 0.55, 1], [0, 7, 7, 0], CLAMP);
 
-  // Subtle 3D camera shift while bars animate (never static!)
-  const camDolly = interpolate(frame, [32, 360], [1.0, 1.07], { ...CLAMP, easing: AE_SMOOTH_LAND });
-  const camTiltY = interpolate(frame, [32, 360], [-2.5, 2.5], CLAMP);
-
-  // Morning Iris Aperture Transition out to Act 3 (f368..405)
-  const irisOut = interpolate(frame, [368, 404], [0, 1], { ...CLAMP, easing: AE_DRAMA_IN });
+  // Continuous silky dolly + gentle perspective turn throughout scene
+  const camScale = interpolate(frame, [36, 420], [1.0, 1.05], { ...CLAMP, easing: AE_LANDING });
+  const camRotY = interpolate(frame, [36, 420], [-2.2, 2.2], CLAMP);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: COLORS.NIGHT, overflow: "hidden" }}>
-      <SubtleAmbientLight dark />
+    <AbsoluteFill
+      style={{
+        backgroundColor: COLORS.NIGHT,
+        overflow: "hidden",
+        transform: `translate3d(${slideX.toFixed(1)}px, 0, 0)`,
+      }}
+    >
+      <ParallaxAtmosphere dark cameraOffsetX={(1 - panIn) * 400} />
 
       <CameraRig
-        x={enterX}
-        scale={camDolly}
-        rotateZ={enterRot}
-        rotateY={camTiltY}
+        scale={camScale}
+        rotateY={camRotY}
         blurX={enterBlur}
-        filterId="act2-blur"
+        filterId="act2-pan-blur"
       >
         <AbsoluteFill
           style={{
-            padding: "0 140px",
+            padding: `0 ${ART_GRID.marginX}px`,
             justifyContent: "center",
             gap: 54,
             zIndex: 20,
           }}
         >
-          {/* Clear, Relatable Explanation (ZERO textbook jargon!) */}
+          {/* Editorial Focal Point */}
           <div style={{ maxWidth: 1380 }}>
-            <MaskRevealLine startFrame={16} duration={28}>
+            <MaskRevealLine startFrame={16} duration={26}>
               <div
                 style={{
                   fontFamily: FONTS.SANS,
-                  fontSize: 24,
+                  fontSize: 23,
                   fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  color: COLORS.LEAF,
+                  letterSpacing: "0.09em",
+                  color: COLORS.MINT_BRIGHT,
                   textTransform: "uppercase",
                   marginBottom: 10,
                 }}
@@ -71,7 +72,7 @@ export const Act2WhyTired: React.FC = () => {
               </div>
             </MaskRevealLine>
 
-            <MaskRevealLine startFrame={26} duration={32}>
+            <MaskRevealLine startFrame={26} duration={30}>
               <div
                 style={{
                   fontFamily: FONTS.SANS,
@@ -91,7 +92,7 @@ export const Act2WhyTired: React.FC = () => {
                     fontStyle: "italic",
                     fontWeight: 400,
                     fontSize: 92,
-                    color: "#FBBF24",
+                    color: COLORS.AMBER_BRIGHT,
                   }}
                 >
                   nanggung.
@@ -100,7 +101,7 @@ export const Act2WhyTired: React.FC = () => {
             </MaskRevealLine>
           </div>
 
-          {/* 3 Visual Proof Bars: keep trying to finish, getting stuck before 100% */}
+          {/* 3 Stuck Progress Cards */}
           <div
             style={{
               display: "grid",
@@ -111,18 +112,17 @@ export const Act2WhyTired: React.FC = () => {
           >
             {STUCK_BARS.map((bar, idx) => {
               const cardIn = spring({
-                frame: Math.max(0, frame - (74 + idx * 20)),
+                frame: Math.max(0, frame - (68 + idx * 20)),
                 fps,
-                config: SPRING_FLUID,
+                config: SPRING_VELVET,
               });
-              // Bar climbs smoothly up to stuckPct, tries to nudge forward, then slips back slightly — visually showing frustration!
-              const climb = interpolate(frame, [94 + idx * 20, 174 + idx * 20], [0, bar.stuckPct], {
+              const climb = interpolate(frame, [88 + idx * 20, 168 + idx * 20], [0, bar.stuckPct], {
                 ...CLAMP,
-                easing: AE_SMOOTH_LAND,
+                easing: AE_LANDING,
               });
               const slip =
-                frame > 174 + idx * 20
-                  ? Math.sin((frame - (174 + idx * 20)) * 0.14) * 4.5
+                frame > 168 + idx * 20
+                  ? Math.sin((frame - (168 + idx * 20)) * 0.13) * 4.2
                   : 0;
               const shownPct = Math.max(0, Math.min(92, climb + slip));
 
@@ -135,7 +135,7 @@ export const Act2WhyTired: React.FC = () => {
                     padding: "32px 34px",
                     border: `1.5px solid ${COLORS.LINE_DARK}`,
                     opacity: cardIn,
-                    transform: `translate3d(0, ${interpolate(cardIn, [0, 1], [48, 0], CLAMP)}px, 0)`,
+                    transform: `translate3d(0, ${interpolate(cardIn, [0, 1], [44, 0], CLAMP)}px, 0)`,
                     display: "flex",
                     flexDirection: "column",
                     gap: 20,
@@ -184,8 +184,8 @@ export const Act2WhyTired: React.FC = () => {
             })}
           </div>
 
-          {/* Punchline Bridge */}
-          <MaskRevealLine startFrame={224} duration={30}>
+          {/* Relatable Emotional Bridge */}
+          <MaskRevealLine startFrame={218} duration={30}>
             <div
               style={{
                 fontFamily: FONTS.SANS,
@@ -202,24 +202,6 @@ export const Act2WhyTired: React.FC = () => {
           </MaskRevealLine>
         </AbsoluteFill>
       </CameraRig>
-
-      {/* Morning Sunlight Iris Bloom expanding smoothly to reveal Act 3 (ZERO blank frames!) */}
-      {irisOut > 0.005 && (
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            width: 2400,
-            height: 2400,
-            borderRadius: "50%",
-            backgroundColor: COLORS.CREAM,
-            transform: `translate(-50%, -50%) scale(${irisOut})`,
-            pointerEvents: "none",
-            zIndex: 50,
-          }}
-        />
-      )}
     </AbsoluteFill>
   );
 };

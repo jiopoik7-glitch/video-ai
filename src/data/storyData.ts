@@ -34,17 +34,21 @@ export interface SfxCue {
   readonly volumeWithVo: number;
 }
 
-export const COMPOSITION_ID = "TenangBerkebunAE";
+export const COMPOSITION_ID = "TenangBerkebunMaster";
 export const VIDEO_SECONDS = 30;
 export const DURATION_IN_FRAMES = VIDEO_SECONDS * FPS; // 1800 frames @ 60 FPS
 
-// Overlapping continuous scenes (ZERO blank/black transition frames!)
+// Jarak antar stasiun Act 3 = 2160px (> 1920px viewport!) -> MUSTAHIL teks tabrakan atau nyelip!
+export const STATION_STRIDE = 2160;
+export const STATION_WIDTH = 1480; // Center margin kiri-kanan 220px per stasiun, gap bersih antar stasiun 680px!
+
+// Transisi 100% tumpang tindih mulus (ZERO BLANK FRAMES!)
 export const SCENES = {
-  ACT1_HOOK: { from: 0, duration: 365 },        // 00:00.0 - 00:06.1 (Light Cream: Broken Ring + Relatable Unfinished Cards -> Whip Dive)
-  ACT2_WHY_TIRED: { from: 345, duration: 405 }, // 00:05.75 - 00:12.5 (Night Forest: "Otak benci hal yang nanggung" + Stuck Progress Bars -> Iris Open)
-  ACT3_TRACKING: { from: 726, duration: 424 },  // 00:12.1 - 00:19.16 (Morning Light: Continuous AE Camera Tracking across 4 Living Stages)
-  ACT4_COMPLETE: { from: 1126, duration: 374 }, // 00:18.76 - 00:25.0 (The Broken Ring Finally Closes to 100% + 3 Relatable Feelings)
-  ACT5_CLOSING: { from: 1476, duration: 324 },  // 00:24.6 - 00:30.0 (Warm Breathing Closing + Original Botanical Crest + Seflorner.)
+  ACT1_HOOK: { from: 0, duration: 360 },        // 00:00.00 - 00:06.00 (Pan-Wipe keluar f324..360)
+  ACT2_WHY_TIRED: { from: 324, duration: 436 }, // 00:05.40 - 00:12.67 (Pan-Wipe masuk f0..36; tetap hidup di bawah portal Act 3!)
+  ACT3_TRACKING: { from: 710, duration: 448 },  // 00:11.83 - 00:19.30 (Portal Daylight clip-path membuka langsung di atas Act 2!)
+  ACT4_COMPLETE: { from: 1110, duration: 394 }, // 00:18.50 - 00:25.07 (Iris gelap membuka langsung ke Ring 76% -> 100% Utuh!)
+  ACT5_CLOSING: { from: 1460, duration: 340 },  // 00:24.33 - 00:30.00 (Kamera Tilt-Up mulus dari Act 4 ke cahaya pagi, 0 frame kosong!)
 } as const;
 
 export const UNFINISHED_CARDS: readonly UnfinishedItem[] = [
@@ -54,7 +58,7 @@ export const UNFINISHED_CARDS: readonly UnfinishedItem[] = [
     note: "Masih ngegantung",
     pct: 74,
     color: "#E11D48",
-    appearLocal: 54,
+    appearLocal: 48,
   },
   {
     id: "u2",
@@ -62,7 +66,7 @@ export const UNFINISHED_CARDS: readonly UnfinishedItem[] = [
     note: "Belum benar-benar beres",
     pct: 86,
     color: "#D97706",
-    appearLocal: 88,
+    appearLocal: 82,
   },
   {
     id: "u3",
@@ -70,7 +74,7 @@ export const UNFINISHED_CARDS: readonly UnfinishedItem[] = [
     note: "Mata lelah, kepala penuh",
     pct: 62,
     color: "#0D9488",
-    appearLocal: 122,
+    appearLocal: 116,
   },
 ];
 
@@ -94,19 +98,19 @@ export const JOURNEY_STATIONS: readonly JourneyStation[] = [
     id: "st2",
     step: "02 · Rawat",
     title: "Siram pelan tiap pagi",
-    desc: "Lima menit tanpa layar, cuma air dan cahaya matahari.",
+    desc: "Lima menit tanpa layar, cuma air dan cahaya pagi.",
     accent: "#0284C7",
     icon: "water",
-    camX: 1180,
+    camX: STATION_STRIDE,
   },
   {
     id: "st3",
     step: "03 · Tumbuh",
     title: "Lihat tunasnya pecah",
-    desc: "Hasil sabarmu terlihat nyata berubah dari hari ke hari.",
+    desc: "Hasil sabarmu terlihat nyata berubah tiap hari.",
     accent: "#15803D",
     icon: "sprout",
-    camX: 2360,
+    camX: STATION_STRIDE * 2,
   },
   {
     id: "st4",
@@ -115,7 +119,7 @@ export const JOURNEY_STATIONS: readonly JourneyStation[] = [
     desc: "Ada satu cerita di hidupmu yang benar-benar sampai akhir.",
     accent: "#E11D48",
     icon: "fruit",
-    camX: 3540,
+    camX: STATION_STRIDE * 3,
   },
 ];
 
@@ -123,12 +127,12 @@ export const HUMAN_FEELINGS: readonly FeelingPoint[] = [
   {
     title: "Nggak perlu buru-buru",
     desc: "Tanaman nggak bisa dipaksa cepat, kamu ikut belajar pelan.",
-    appearLocal: 118,
+    appearLocal: 122,
   },
   {
     title: "Nyata bisa disentuh",
     desc: "Bukan cuma angka dan tulisan yang lewat di layar HP.",
-    appearLocal: 162,
+    appearLocal: 164,
   },
   {
     title: "Akhirnya terasa selesai",
@@ -138,26 +142,28 @@ export const HUMAN_FEELINGS: readonly FeelingPoint[] = [
 ];
 
 export const SFX_CUES: readonly SfxCue[] = [
-  // Act 1: Cards popping in + whip camera dive into Act 2
-  { id: "c1-pop1", frame: 54, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.25, volumeWithVo: 0.09 },
-  { id: "c1-pop2", frame: 88, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
-  { id: "c1-pop3", frame: 122, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.27, volumeWithVo: 0.09 },
-  { id: "c1-whip", frame: 334, durationSec: 0.30, file: "audio/sfx-whip.wav", volumeNoVo: 0.30, volumeWithVo: 0.10 },
-  // Act 2: Stuck bar ticks + morning iris bloom into Act 3
-  { id: "c2-tick1", frame: 492, durationSec: 0.09, file: "audio/sfx-tick.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
-  { id: "c2-tick2", frame: 562, durationSec: 0.09, file: "audio/sfx-tick.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
-  { id: "c2-iris", frame: 718, durationSec: 0.52, file: "audio/sfx-iris.wav", volumeNoVo: 0.34, volumeWithVo: 0.11 },
-  // Act 3: 3 smooth AE camera whip-pans between the 4 botanical stations
-  { id: "c3-pan1", frame: 828, durationSec: 0.30, file: "audio/sfx-whip.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
-  { id: "c3-pan2", frame: 924, durationSec: 0.30, file: "audio/sfx-whip.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
-  { id: "c3-pan3", frame: 1020, durationSec: 0.30, file: "audio/sfx-whip.wav", volumeNoVo: 0.28, volumeWithVo: 0.09 },
-  // Act 4: Circle locks to 100% + 3 human feeling pops
-  { id: "c4-whip", frame: 1126, durationSec: 0.30, file: "audio/sfx-whip.wav", volumeNoVo: 0.28, volumeWithVo: 0.09 },
-  { id: "c4-lock", frame: 1196, durationSec: 0.85, file: "audio/sfx-complete.wav", volumeNoVo: 0.34, volumeWithVo: 0.11 },
-  { id: "c4-feel1", frame: 1244, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.24, volumeWithVo: 0.09 },
-  { id: "c4-feel2", frame: 1288, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.25, volumeWithVo: 0.09 },
-  { id: "c4-feel3", frame: 1332, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
-  // Act 5: Gentle rise + warm resolve chord
-  { id: "c5-rise", frame: 1476, durationSec: 0.52, file: "audio/sfx-iris.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
-  { id: "c5-resolve", frame: 1624, durationSec: 2.60, file: "audio/sfx-resolve.wav", volumeNoVo: 0.34, volumeWithVo: 0.10 },
+  // Act 1
+  { id: "c1-pop1", frame: 48, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.24, volumeWithVo: 0.09 },
+  { id: "c1-pop2", frame: 82, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.25, volumeWithVo: 0.09 },
+  { id: "c1-pop3", frame: 116, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
+  // Seamless Pan-Wipe Act 1 -> Act 2 (global f324)
+  { id: "c1-glide", frame: 324, durationSec: 0.42, file: "audio/sfx-glide.wav", volumeNoVo: 0.28, volumeWithVo: 0.10 },
+  // Act 2 stuck ticks
+  { id: "c2-tick1", frame: 480, durationSec: 0.09, file: "audio/sfx-tick.wav", volumeNoVo: 0.24, volumeWithVo: 0.09 },
+  { id: "c2-tick2", frame: 550, durationSec: 0.09, file: "audio/sfx-tick.wav", volumeNoVo: 0.24, volumeWithVo: 0.09 },
+  // Seamless Morning Portal Act 2 -> Act 3 (global f710)
+  { id: "c2-portal", frame: 710, durationSec: 0.56, file: "audio/sfx-portal.wav", volumeNoVo: 0.32, volumeWithVo: 0.11 },
+  // Act 3: 3 silky tracking glides between the 4 stations (710 + 106, 204, 302)
+  { id: "c3-pan1", frame: 816, durationSec: 0.42, file: "audio/sfx-glide.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
+  { id: "c3-pan2", frame: 914, durationSec: 0.42, file: "audio/sfx-glide.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
+  { id: "c3-pan3", frame: 1012, durationSec: 0.42, file: "audio/sfx-glide.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
+  // Seamless Iris into Act 4 (global f1110) + 100% completion harmonic chime (1110 + 76 = 1186)
+  { id: "c4-portal", frame: 1110, durationSec: 0.56, file: "audio/sfx-portal.wav", volumeNoVo: 0.28, volumeWithVo: 0.10 },
+  { id: "c4-lock", frame: 1186, durationSec: 0.88, file: "audio/sfx-complete.wav", volumeNoVo: 0.34, volumeWithVo: 0.11 },
+  { id: "c4-f1", frame: 1232, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.24, volumeWithVo: 0.09 },
+  { id: "c4-f2", frame: 1274, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.25, volumeWithVo: 0.09 },
+  { id: "c4-f3", frame: 1316, durationSec: 0.14, file: "audio/sfx-pop.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
+  // Seamless Camera Tilt-Up into Act 5 (global f1460) + Warm Resolve Chord (1618)
+  { id: "c5-glide", frame: 1460, durationSec: 0.42, file: "audio/sfx-glide.wav", volumeNoVo: 0.26, volumeWithVo: 0.09 },
+  { id: "c5-resolve", frame: 1618, durationSec: 2.60, file: "audio/sfx-resolve.wav", volumeNoVo: 0.34, volumeWithVo: 0.10 },
 ];

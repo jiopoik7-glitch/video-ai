@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { AbsoluteFill, Sequence, interpolate, useCurrentFrame } from "remotion";
 import { DURATION_IN_FRAMES, SCENES } from "../data/storyData";
-import { CLAMP, COLORS, loadStoryFonts } from "../theme";
+import { CLAMP, COLORS, loadArtFonts } from "../theme";
 import { AudioEngine } from "./AudioEngine";
 import { Act1Hook } from "../scenes/Act1Hook";
 import { Act2WhyTired } from "../scenes/Act2WhyTired";
@@ -13,20 +13,20 @@ export const MasterVideo: React.FC = () => {
   const frame = useCurrentFrame();
 
   useEffect(() => {
-    loadStoryFonts();
+    loadArtFonts();
   }, []);
 
   const pct = interpolate(frame, [0, DURATION_IN_FRAMES - 1], [0, 100], CLAMP);
 
   return (
     <AbsoluteFill style={{ backgroundColor: COLORS.CREAM }}>
-      {/* Act 2 mounts slightly before Act 1 whip-exit completes -> ZERO blank frames */}
-      <Sequence from={SCENES.ACT2_WHY_TIRED.from} durationInFrames={SCENES.ACT2_WHY_TIRED.duration}>
-        <Act2WhyTired />
-      </Sequence>
-
+      {/* Natural chronological stacking: each incoming transition glides or portals directly ON TOP of outgoing scene -> ZERO blank frames! */}
       <Sequence from={SCENES.ACT1_HOOK.from} durationInFrames={SCENES.ACT1_HOOK.duration}>
         <Act1Hook />
+      </Sequence>
+
+      <Sequence from={SCENES.ACT2_WHY_TIRED.from} durationInFrames={SCENES.ACT2_WHY_TIRED.duration}>
+        <Act2WhyTired />
       </Sequence>
 
       <Sequence from={SCENES.ACT3_TRACKING.from} durationInFrames={SCENES.ACT3_TRACKING.duration}>
@@ -41,7 +41,7 @@ export const MasterVideo: React.FC = () => {
         <Act5Closing />
       </Sequence>
 
-      {/* Ultra-subtle progress hairline */}
+      {/* Hairline progress indicator */}
       <div
         style={{
           position: "absolute",
@@ -49,7 +49,7 @@ export const MasterVideo: React.FC = () => {
           left: 0,
           right: 0,
           height: 4,
-          backgroundColor: "rgba(13, 25, 18, 0.08)",
+          backgroundColor: "rgba(12, 24, 17, 0.08)",
           pointerEvents: "none",
           zIndex: 95,
         }}
