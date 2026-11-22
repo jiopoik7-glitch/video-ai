@@ -93,7 +93,11 @@ export const ISLAND_TIMELINE: readonly IslandEvent[] = [
 ];
 
 export const getActiveIslandEvent = (frame: number): IslandEvent => {
-  let active = ISLAND_TIMELINE[0];
+  const firstEvent = ISLAND_TIMELINE[0];
+  if (firstEvent === undefined) {
+    throw new Error("ISLAND_TIMELINE must contain at least one event.");
+  }
+  let active: IslandEvent = firstEvent;
   for (const ev of ISLAND_TIMELINE) {
     if (frame >= ev.startFrame) {
       active = ev;
