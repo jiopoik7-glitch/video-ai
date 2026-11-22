@@ -21,24 +21,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate 7 file audio prosedural (WAV Stereo 44.1kHz)
-        run: |
-          node scripts/generate-audio.mjs
-          ls -lh public/audio/
-
       - name: Verifikasi TypeScript (Zero Error)
         run: npx tsc --noEmit
 
       - name: Verifikasi Composition Remotion
         run: npx remotion compositions
 
-      - name: Render Master Video MP4 (1080x1920 60fps 30s)
+      - name: Render Master Video MP4 (1080x1080 60fps 31s)
         run: |
           mkdir -p out
-          npx remotion render src/index.ts SeflornerPocAffiliate out/seflorner-poc-affiliate-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
+          npx remotion render src/index.ts LyricEmotion out/lyric-emotion-plain.mp4 --codec=h264 --crf=16
 
       - name: Simpan hasil video agar bisa diunduh
         uses: actions/upload-artifact@v4
         with:
           name: hasil-video
-          path: out/seflorner-poc-affiliate-30s.mp4
+          path: out/lyric-emotion-plain.mp4
