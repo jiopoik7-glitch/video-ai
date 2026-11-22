@@ -1,17 +1,18 @@
 import React from "react";
 import { Composition } from "remotion";
-import { LyricVideo } from "./LyricVideo";
+import { VIDEO_SPEC } from "./data/pocData";
+import { VideoPocAffiliate } from "./VideoPocAffiliate";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition
-        id="LyricPlain"
-        component={LyricVideo}
-        durationInFrames={1620}
-        fps={60}
-        width={1080}
-        height={1080}
+        id={VIDEO_SPEC.ID}
+        component={VideoPocAffiliate}
+        width={VIDEO_SPEC.WIDTH}
+        height={VIDEO_SPEC.HEIGHT}
+        fps={VIDEO_SPEC.FPS}
+        durationInFrames={VIDEO_SPEC.DURATION_IN_FRAMES}
       />
     </>
   );

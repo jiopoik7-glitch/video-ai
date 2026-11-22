@@ -1,20 +1,19 @@
-name: Render Remotion Lyric Video
+name: Render Video Remotion
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   render:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Checkout repository
+      - name: Ambil kode project
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Siapkan Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -22,17 +21,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: TypeScript strict typecheck
+      - name: Generate 7 file audio prosedural (WAV Stereo 44.1kHz)
+        run: |
+          node scripts/generate-audio.mjs
+          ls -lh public/audio/
+
+      - name: Verifikasi TypeScript (Zero Error)
         run: npx tsc --noEmit
 
-      - name: Verify Remotion compositions
+      - name: Verifikasi Composition Remotion
         run: npx remotion compositions
 
-      - name: Render LyricPlain MP4
-        run: npx remotion render src/index.ts LyricPlain out/lyric-plain.mp4 --codec=h264 --crf=16
+      - name: Render Master Video MP4 (1080x1920 60fps 30s)
+        run: |
+          mkdir -p out
+          npx remotion render src/index.ts SeflornerPocAffiliate out/seflorner-poc-affiliate-30s.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k
 
-      - name: Upload rendered video artifact
+      - name: Simpan hasil video agar bisa diunduh
         uses: actions/upload-artifact@v4
         with:
           name: hasil-video
-          path: out/lyric-plain.mp4
+          path: out/seflorner-poc-affiliate-30s.mp4
