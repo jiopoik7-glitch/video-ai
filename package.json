@@ -1,13 +1,13 @@
 {
-  "name": "seflorner-bibit-stroberi-liquid-glass",
+  "name": "benih-tomat-dataran-rendah-video-ai",
   "version": "1.0.0",
   "private": true,
-  "description": "TikTok Affiliate 9:16 Remotion Video - iOS Liquid Glass x Notes & Widgets - Bibit Stroberi Dataran Rendah (Seflorner)",
+  "description": "Video TikTok Affiliate iOS Liquid Glass - Benih Tomat Dataran Rendah (Seflorner)",
   "scripts": {
-    "audio": "node scripts/generate-audio.mjs",
+    "generate:audio": "node scripts/generate-audio.mjs",
     "typecheck": "tsc --noEmit",
-    "compositions": "remotion compositions",
-    "render": "remotion render src/index.ts BibitStroberiLiquidGlass out/bibit-stroberi-seflorner.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
+    "compositions": "remotion compositions src/index.ts",
+    "build": "remotion render src/index.ts BenihTomatDataranRendah out/benih-tomat-dataran-rendah.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=192k"
   },
   "dependencies": {
     "@remotion/cli": "4.0.242",
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "typescript": "5.6.3"
   }
 }

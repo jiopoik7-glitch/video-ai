@@ -1,96 +1,298 @@
-export interface AudioEvent {
+import { FPS } from "../theme";
+
+export type ActKey = "act1" | "act2" | "act3" | "act4" | "act5";
+
+export interface ActRange {
+  readonly from: number;
+  readonly duration: number;
+}
+
+export interface WordItem {
+  readonly text: string;
+  readonly serifAccent?: boolean;
+  readonly warmColor?: boolean;
+}
+
+export interface ChecklistItem {
   readonly id: string;
-  readonly frame: number;
-  readonly durationInFrames: number;
+  readonly text: string;
+  readonly appearLocal: number;
+  readonly checkLocal: number;
+}
+
+export interface SpecPill {
+  readonly tag: string;
+  readonly label: string;
+}
+
+export interface SfxCue {
+  readonly id: string;
+  readonly act: ActKey;
+  readonly localFrame: number;
+  readonly durationSec: number;
   readonly file: string;
-  readonly volume: number;
+  readonly volumeNoVo: number;
+  readonly volumeWithVo: number;
+}
+
+export interface ProductPhotoSlot {
+  readonly enabled: boolean;
+  readonly file: string;
 }
 
 export interface MediaConfig {
-  readonly ENABLE_PROCEDURAL_AUDIO: boolean;
-  readonly ENABLE_VOICEOVER_FILE: boolean;
-  readonly VOICEOVER_FILE: string;
-  readonly ENABLE_PRODUCT_PHOTO: boolean;
-  readonly PHOTO_PRIMARY: string;
-  readonly PHOTO_SECONDARY: string;
+  readonly produk1: ProductPhotoSlot;
+  readonly produk2: ProductPhotoSlot;
 }
 
-export const VIDEO_SPEC = {
-  ID: "SeflornerStroberiGlass",
-  WIDTH: 1080,
-  HEIGHT: 1920,
-  FPS: 60,
-  DURATION_IN_FRAMES: 1200, // Tepat 20.00 detik
-} as const;
+export const COMPOSITION_ID = "BenihTomatDataranRendah";
+export const PRODUCT_SLUG = "benih-tomat-dataran-rendah";
 
-/**
- * Konfigurasi Media Aman:
- * ENABLE_PRODUCT_PHOTO default false agar render langsung jalan dengan ilustrasi pot stroberi SVG.
- * Setelah menyimpan 2 foto stroberi ke public/media/produk-1.jpg & produk-2.jpg, ubah ke true!
- */
-export const MEDIA_CONFIG: MediaConfig = {
-  ENABLE_PROCEDURAL_AUDIO: true,
-  ENABLE_VOICEOVER_FILE: false,
-  VOICEOVER_FILE: "media/voiceover.mp3",
-  ENABLE_PRODUCT_PHOTO: true,
-  PHOTO_PRIMARY: "media/produk-1.jpg",
-  PHOTO_SECONDARY: "media/produk-2.jpg",
+// Sinkronkan dengan VIDEO_SECONDS di scripts/generate-audio.mjs
+export const VIDEO_SECONDS = 20;
+export const DURATION_IN_FRAMES = VIDEO_SECONDS * FPS; // 1200 frame
+
+export const ACT_RATIOS = [0, 0.16, 0.40, 0.62, 0.83, 1] as const;
+
+const BOUNDARIES = ACT_RATIOS.map((r) => Math.round(r * DURATION_IN_FRAMES));
+
+export const ACTS: Record<ActKey, ActRange> = {
+  act1: { from: BOUNDARIES[0], duration: BOUNDARIES[1] - BOUNDARIES[0] }, // 0..191 (192f / 3.20s)
+  act2: { from: BOUNDARIES[1], duration: BOUNDARIES[2] - BOUNDARIES[1] }, // 192..479 (288f / 4.80s)
+  act3: { from: BOUNDARIES[2], duration: BOUNDARIES[3] - BOUNDARIES[2] }, // 480..743 (264f / 4.40s)
+  act4: { from: BOUNDARIES[3], duration: BOUNDARIES[4] - BOUNDARIES[3] }, // 744..995 (252f / 4.20s)
+  act5: { from: BOUNDARIES[4], duration: BOUNDARIES[5] - BOUNDARIES[4] }, // 996..1199 (204f / 3.40s)
 };
 
-export const ACT_TIMELINE = {
-  ACT1_HOOK: { from: 0, duration: 195 },        // 00:00.00 - 00:03.25 (16.25%)
-  ACT2_NOTES: { from: 195, duration: 285 },     // 00:03.25 - 00:08.00 (23.75%)
-  ACT3_WIDGET: { from: 480, duration: 265 },    // 00:08.00 - 00:12.42 (22.08%)
-  ACT4_SHEET: { from: 745, duration: 250 },     // 00:12.42 - 00:16.58 (20.83%)
-  ACT5_OUTRO: { from: 995, duration: 205 },     // 00:16.58 - 00:20.00 (17.08%)
+export function toGlobalFrame(act: ActKey, localFrame: number): number {
+  return ACTS[act].from + localFrame;
+}
+
+export const MEDIA_CONFIG: MediaConfig = {
+  produk1: {
+    enabled: false,
+    file: "media/produk-1.jpg",
+  },
+  produk2: {
+    enabled: false,
+    file: "media/produk-2.jpg",
+  },
+};
+
+export const COPY = {
+  brandName: "Seflorner",
+  productName: "Benih Tomat Dataran Rendah",
+  statusTime: "09:41",
+  act1: {
+    notifHeader: "Pengingat · Baru saja",
+    notifBody: "Tomat di rumah sering rontok sebelum jadi buah?",
+    headline: [
+      { text: "Dataran" },
+      { text: "rendah" },
+      { text: "tetap" },
+      { text: "bisa" },
+      { text: "berbuah", serifAccent: true },
+    ] as readonly WordItem[],
+  },
+  act2: {
+    tag: "CATATAN KEBUN · SIMPAN",
+    title: "Rawat Tomat Panas",
+    // Video 20 detik (< 22 detik): tepat 3 poin checklist, tanpa mini-bar
+    items: [
+      {
+        id: "c1",
+        text: "Pilih benih tahan suhu hangat",
+        appearLocal: 24,
+        checkLocal: 42,
+      },
+      {
+        id: "c2",
+        text: "Pakai media poros sekam kompos",
+        appearLocal: 74,
+        checkLocal: 92,
+      },
+      {
+        id: "c3",
+        text: "Siram pagi, pangkas tunas air",
+        appearLocal: 124,
+        checkLocal: 142,
+      },
+    ] as readonly ChecklistItem[],
+  },
+  act3: {
+    tag: "SIMULASI RAWATAN · ILUSTRASI",
+    metricLabel: "Skor Rawatan (Ilustrasi)",
+    beforeLabel: "Siram Saja",
+    afterLabel: "Rawatan Rutin",
+    beforeStatus: "Rawan Layu",
+    afterStatus: "Tumbuh Segar",
+    beforeScore: 35,
+    afterScore: 90,
+  },
+  act4: {
+    tag: "REKOMENDASI",
+    title: "Benih Tomat",
+    subtitle: "Dataran Rendah",
+    buttonIdle: "Simpan Catatan",
+    buttonDone: "Tersimpan",
+    // Video 20 detik (< 22 detik): maksimal 2 pil spesifikasi nyata (tanpa klaim mengarang)
+    specs: [
+      { tag: "ADAPTASI", label: "Cocok Suhu Hangat" },
+      { tag: "PERAWATAN", label: "Mudah Untuk Pemula" },
+    ] as readonly SpecPill[],
+  },
+  act5: {
+    closingWords: [
+      { text: "Rawat" },
+      { text: "pelan" },
+      { text: "dari" },
+      { text: "rumah," },
+      { text: "nikmati" },
+      { text: "panen", serifAccent: true },
+      { text: "sendiri." },
+    ] as readonly WordItem[],
+    ctaLabel: "Cek Keranjang Kuning",
+    finaleSub: "Benih Tomat Dataran Rendah",
+  },
 } as const;
 
-export const CHECKLIST_ITEMS = [
-  {
-    title: "Pilih bibit adaptif dataran rendah",
-    sub: "Varian California / Mencir lebih tahan suhu hangat",
-    checkAt: 50,
+export const TIMELINE = {
+  act1: {
+    notifStart: 6,
+    notifTextStart: 14,
+    headlineStart: 56,
+    exitStart: 170,
   },
-  {
-    title: "Media tanam super poros & ringan",
-    sub: "Campur sekam bakar, cocopeat, dan kompos (1:1:1)",
-    checkAt: 97,
+  act2: {
+    cardStart: 0,
+    exitStart: 266,
   },
-  {
-    title: "Sinar matahari pagi 4–6 jam",
-    sub: "Teduhkan di teras saat terik siang menyengat",
-    checkAt: 143,
+  act3: {
+    cardStart: 0,
+    cursorAppear: 16,
+    tapStart: 44,
+    dragEnd: 140,
+    metricEnd: 156,
+    cursorHide: 184,
+    exitStart: 242,
   },
-  {
-    title: "Siram rutin tanpa air menggenang",
-    sub: "Cukup jaga media lembap agar akar tetap segar",
-    checkAt: 189,
+  act4: {
+    sheetStart: 0,
+    pill1Start: 38,
+    pill2Start: 58,
+    cursorAppear: 102,
+    buttonTap: 148,
+    cursorHide: 192,
+    exitStart: 230,
   },
-] as const;
+  act5: {
+    closingStart: 0,
+    ctaAppear: 22,
+    ctaPress: 42,
+    resolveStart: 44,
+    phaseAExit: 64,
+    finaleStart: 68,
+  },
+} as const;
 
-export const PRODUCT_SPECS = [
-  { label: "KONDISI", value: "Bibit Sehat Siap Tanam" },
-  { label: "ADAPTASI", value: "Cocok Dataran Rendah" },
-  { label: "PANEN", value: "Berbuah ±45–60 Hari" },
-] as const;
-
-export const AUDIO_EVENTS: readonly AudioEvent[] = [
-  // Act 1: iOS notification chime
-  { id: "act1-notif", frame: 10, durationInFrames: 30, file: "audio/sfx-ios-notif.wav", volume: 0.34 },
-  // Act 2: Glass glide + 4 checklist droplet pops
-  { id: "act2-glide", frame: 195, durationInFrames: 24, file: "audio/sfx-glass-glide.wav", volume: 0.28 },
-  { id: "act2-check-1", frame: 245, durationInFrames: 12, file: "audio/sfx-droplet-check.wav", volume: 0.28 },
-  { id: "act2-check-2", frame: 292, durationInFrames: 12, file: "audio/sfx-droplet-check.wav", volume: 0.29 },
-  { id: "act2-check-3", frame: 338, durationInFrames: 12, file: "audio/sfx-droplet-check.wav", volume: 0.30 },
-  { id: "act2-check-4", frame: 384, durationInFrames: 12, file: "audio/sfx-droplet-check.wav", volume: 0.31 },
-  // Act 3: Widget glide + haptic slider grab + ripe chime
-  { id: "act3-glide", frame: 480, durationInFrames: 24, file: "audio/sfx-glass-glide.wav", volume: 0.28 },
-  { id: "act3-tap", frame: 525, durationInFrames: 8, file: "audio/sfx-haptic-tap.wav", volume: 0.32 },
-  { id: "act3-ripe", frame: 668, durationInFrames: 30, file: "audio/sfx-ios-notif.wav", volume: 0.26 },
-  // Act 4: Bottom sheet glide up + haptic save tap
-  { id: "act4-glide", frame: 745, durationInFrames: 24, file: "audio/sfx-glass-glide.wav", volume: 0.30 },
-  { id: "act4-save", frame: 890, durationInFrames: 8, file: "audio/sfx-haptic-tap.wav", volume: 0.34 },
-  // Act 5: CTA haptic press + finale crystal resolve
-  { id: "act5-press", frame: 1072, durationInFrames: 8, file: "audio/sfx-haptic-tap.wav", volume: 0.34 },
-  { id: "act5-resolve", frame: 1086, durationInFrames: 114, file: "audio/sfx-crystal-resolve.wav", volume: 0.35 },
+export const SFX_CUES: readonly SfxCue[] = [
+  {
+    id: "sfx-act1-notif",
+    act: "act1",
+    localFrame: TIMELINE.act1.notifStart,
+    durationSec: 0.45,
+    file: "audio/sfx-ios-notif.wav",
+    volumeNoVo: 0.32,
+    volumeWithVo: 0.10,
+  },
+  {
+    id: "sfx-act2-glide",
+    act: "act2",
+    localFrame: TIMELINE.act2.cardStart,
+    durationSec: 0.38,
+    file: "audio/sfx-glass-glide.wav",
+    volumeNoVo: 0.28,
+    volumeWithVo: 0.09,
+  },
+  {
+    id: "sfx-act2-check-1",
+    act: "act2",
+    localFrame: COPY.act2.items[0].checkLocal,
+    durationSec: 0.18,
+    file: "audio/sfx-droplet-check.wav",
+    volumeNoVo: 0.28,
+    volumeWithVo: 0.10,
+  },
+  {
+    id: "sfx-act2-check-2",
+    act: "act2",
+    localFrame: COPY.act2.items[1].checkLocal,
+    durationSec: 0.18,
+    file: "audio/sfx-droplet-check.wav",
+    volumeNoVo: 0.29,
+    volumeWithVo: 0.10,
+  },
+  {
+    id: "sfx-act2-check-3",
+    act: "act2",
+    localFrame: COPY.act2.items[2].checkLocal,
+    durationSec: 0.18,
+    file: "audio/sfx-droplet-check.wav",
+    volumeNoVo: 0.30,
+    volumeWithVo: 0.10,
+  },
+  {
+    id: "sfx-act3-glide",
+    act: "act3",
+    localFrame: TIMELINE.act3.cardStart,
+    durationSec: 0.38,
+    file: "audio/sfx-glass-glide.wav",
+    volumeNoVo: 0.28,
+    volumeWithVo: 0.09,
+  },
+  {
+    id: "sfx-act3-tap",
+    act: "act3",
+    localFrame: TIMELINE.act3.tapStart,
+    durationSec: 0.11,
+    file: "audio/sfx-haptic-tap.wav",
+    volumeNoVo: 0.32,
+    volumeWithVo: 0.10,
+  },
+  {
+    id: "sfx-act4-glide",
+    act: "act4",
+    localFrame: TIMELINE.act4.sheetStart,
+    durationSec: 0.38,
+    file: "audio/sfx-glass-glide.wav",
+    volumeNoVo: 0.30,
+    volumeWithVo: 0.09,
+  },
+  {
+    id: "sfx-act4-tap",
+    act: "act4",
+    localFrame: TIMELINE.act4.buttonTap,
+    durationSec: 0.11,
+    file: "audio/sfx-haptic-tap.wav",
+    volumeNoVo: 0.32,
+    volumeWithVo: 0.10,
+  },
+  {
+    id: "sfx-act5-tap",
+    act: "act5",
+    localFrame: TIMELINE.act5.ctaPress,
+    durationSec: 0.11,
+    file: "audio/sfx-haptic-tap.wav",
+    volumeNoVo: 0.32,
+    volumeWithVo: 0.10,
+  },
+  {
+    id: "sfx-act5-resolve",
+    act: "act5",
+    localFrame: TIMELINE.act5.resolveStart,
+    durationSec: 2.60,
+    file: "audio/sfx-crystal-resolve.wav",
+    volumeNoVo: 0.34,
+    volumeWithVo: 0.10,
+  },
 ];

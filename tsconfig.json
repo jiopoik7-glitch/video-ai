@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES2022",
+    "lib": ["dom", "ES2022"],
     "module": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "jsx": "react-jsx",
     "moduleResolution": "bundler",
+    "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "isolatedModules": true,
     "noEmit": true
   },

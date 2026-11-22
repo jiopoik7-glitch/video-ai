@@ -1,43 +1,71 @@
 import React from "react";
 import { Audio, Sequence, interpolate, staticFile } from "remotion";
-import { AUDIO_EVENTS, MEDIA_CONFIG, VIDEO_SPEC } from "../data/videoData";
-import { CLAMP } from "../theme";
+import { DURATION_IN_FRAMES, SFX_CUES, toGlobalFrame } from "../data/videoData";
+import { CLAMP, FPS } from "../theme";
 
-function computeBgmVolume(frame: number, hasVoiceover: boolean): number {
-  const total = VIDEO_SPEC.DURATION_IN_FRAMES;
-  const fadeIn = interpolate(frame, [0, 42], [0, 1], CLAMP);
-  const fadeOut = interpolate(frame, [total - 96, total - 1], [1, 0], CLAMP);
-  const target = hasVoiceover ? 0.14 : 0.30;
-  return target * fadeIn * fadeOut;
+export const ENABLE_PROCEDURAL_AUDIO = true;
+// PERINGATAN: Hanya ubah ke true SETELAH file public/media/voiceover.mp3 benar-benar ada!
+// Jika file belum ada, render GitHub Actions akan gagal.
+export const ENABLE_VOICEOVER_FILE = false;
+const VOICEOVER_FILE = "media/voiceover.mp3";
+const VOICEOVER_VOLUME = 0.85;
+
+// Auto-ducking BGM & SFX untuk menjamin estimasi puncak worst-case <= 0.98 (zero clipping):
+// Peak file BGM/SFX = -3 dBFS (0.708).
+// Tanpa VO: BGM (0.708 * 0.30 = 0.212) + SFX (0.708 * 0.34 = 0.241) = 0.453 <= 0.98
+// Dengan VO: VO (0.850) + BGM (0.708 * 0.08 = 0.057) + SFX (0.708 * 0.10 = 0.071) = 0.978 <= 0.98
+function computeBgmVolume(frame: number, voiceoverActive: boolean): number {
+  const fadeIn = interpolate(frame, [0, FPS], [0, 1], CLAMP);
+  const fadeOut = interpolate(
+    frame,
+    [DURATION_IN_FRAMES - Math.round(2.5 * FPS), DURATION_IN_FRAMES - 1],
+    [1, 0],
+    CLAMP
+  );
+  const duckCurve = voiceoverActive
+    ? interpolate(frame, [0, 18, DURATION_IN_FRAMES - 24, DURATION_IN_FRAMES - 1], [0.14, 0.08, 0.08, 0.14], CLAMP)
+    : 0.30;
+
+  return duckCurve * fadeIn * fadeOut;
 }
 
 export const AudioEngine: React.FC = () => {
   return (
     <>
-      {MEDIA_CONFIG.ENABLE_PROCEDURAL_AUDIO && (
+      {ENABLE_PROCEDURAL_AUDIO && (
         <>
-          <Sequence from={0} durationInFrames={VIDEO_SPEC.DURATION_IN_FRAMES}>
+          <Sequence from={0} durationInFrames={DURATION_IN_FRAMES} layout="none">
             <Audio
               src={staticFile("audio/bgm-liquid-bed.wav")}
-              volume={(f) => computeBgmVolume(f, MEDIA_CONFIG.ENABLE_VOICEOVER_FILE)}
+              volume={(f) => computeBgmVolume(f, ENABLE_VOICEOVER_FILE)}
             />
           </Sequence>
 
-          {AUDIO_EVENTS.map((ev) => {
-            const dur = Math.min(ev.durationInFrames, VIDEO_SPEC.DURATION_IN_FRAMES - ev.frame);
-            if (dur <= 0) return null;
+          {SFX_CUES.map((cue) => {
+            const globalStart = toGlobalFrame(cue.act, cue.localFrame);
+            const rawDuration = Math.ceil(cue.durationSec * FPS);
+            const safeDuration = Math.min(rawDuration, DURATION_IN_FRAMES - globalStart);
+            if (globalStart < 0 || safeDuration <= 0) {
+              return null;
+            }
+            const vol = ENABLE_VOICEOVER_FILE ? cue.volumeWithVo : cue.volumeNoVo;
             return (
-              <Sequence key={ev.id} from={ev.frame} durationInFrames={dur}>
-                <Audio src={staticFile(ev.file)} volume={ev.volume} />
+              <Sequence
+                key={cue.id}
+                from={globalStart}
+                durationInFrames={safeDuration}
+                layout="none"
+              >
+                <Audio src={staticFile(cue.file)} volume={vol} />
               </Sequence>
             );
           })}
         </>
       )}
 
-      {MEDIA_CONFIG.ENABLE_VOICEOVER_FILE && (
-        <Sequence from={0} durationInFrames={VIDEO_SPEC.DURATION_IN_FRAMES}>
-          <Audio src={staticFile(MEDIA_CONFIG.VOICEOVER_FILE)} volume={1.0} />
+      {ENABLE_VOICEOVER_FILE && (
+        <Sequence from={0} durationInFrames={DURATION_IN_FRAMES} layout="none">
+          <Audio src={staticFile(VOICEOVER_FILE)} volume={VOICEOVER_VOLUME} />
         </Sequence>
       )}
     </>
